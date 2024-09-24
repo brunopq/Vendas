@@ -1,11 +1,10 @@
-import type { ActionFunction } from "@remix-run/node"
+import type { ActionFunction, LoaderFunctionArgs } from "@remix-run/node"
 import {
   Form,
   json,
   redirect,
   useActionData,
   useNavigation,
-  useRouteError,
 } from "@remix-run/react"
 import { z } from "zod"
 
@@ -21,13 +20,19 @@ const formValidator = z.object({
   password: z.string().min(1),
 })
 
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const session = await getSession(request.headers.get("Cookie"))
+
+  if (session.get("user")) {
+    return redirect("/app")
+  }
+
+  return null
+}
+
 export const action: ActionFunction = async ({ request }) => {
   try {
     const session = await getSession(request.headers.get("Cookie"))
-
-    if (session.data.user) {
-      return redirect("/app")
-    }
 
     const rawForm = Object.fromEntries(await request.formData())
 
@@ -42,8 +47,7 @@ export const action: ActionFunction = async ({ request }) => {
         "Set-Cookie": await commitSession(session),
       },
     })
-  } catch {
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+  } catch (e) {
     return json({ error: true })
   }
 }
