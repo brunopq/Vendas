@@ -61,8 +61,10 @@ export default function Login() {
 
   return (
     <div className="grid h-screen place-items-center bg-zinc-300">
-      <div className="max-w-[calc(100vw-2rem)] rounded bg-zinc-200 p-8 shadow-sm ">
-        <h2 className="mb-4 font-semibold text-primary-800 text-xl">Login</h2>
+      <div className="max-w-[calc(100vw-1rem)] rounded bg-zinc-200 p-6 shadow-sm">
+        <h2 className="mb-6 text-center font-semibold text-primary-800 text-xl">
+          Login
+        </h2>
 
         <Form method="post" className="flex flex-col gap-2">
           <Input name="name" placeholder="Usuário" />
