@@ -7,6 +7,7 @@ import {
   boolean,
   numeric,
 } from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm"
 import { customAlphabet } from "nanoid"
 
 const idLength = 12
@@ -31,6 +32,10 @@ export const user = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
 })
 
+export const userRelations = relations(user, ({ many }) => ({
+  sales: many(sale),
+}))
+
 export const sale = pgTable("sales", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
   date: date("date").defaultNow(),
@@ -46,3 +51,7 @@ export const sale = pgTable("sales", {
   estimatedValue: numeric("estimated_value", { precision: 16, scale: 2 }),
   comments: text("comments"),
 })
+
+export const saleRelations = relations(sale, ({ one }) => ({
+  seller: one(user, { fields: [sale.seller], references: [user.id] }),
+}))

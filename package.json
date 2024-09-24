@@ -5,6 +5,7 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev",
+    "generate": "drizzle-kit generate",
     "lint": "biome lint",
     "format": "biome format --write",
     "start": "remix-serve ./build/server/index.js",
