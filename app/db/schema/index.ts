@@ -9,6 +9,8 @@ import {
 } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 import { customAlphabet } from "nanoid"
+import { createInsertSchema, createSelectSchema } from "drizzle-zod"
+import type { z } from "zod"
 
 const idLength = 12
 const nanoid = customAlphabet(
@@ -55,3 +57,18 @@ export const sale = pgTable("sales", {
 export const saleRelations = relations(sale, ({ one }) => ({
   seller: one(user, { fields: [sale.seller], references: [user.id] }),
 }))
+
+//
+// types and schemas
+
+export const userSchema = createSelectSchema(user)
+export const newUserSchema = createInsertSchema(user)
+
+export const saleSchema = createSelectSchema(sale)
+export const newSaleSchema = createInsertSchema(sale)
+
+export type User = z.infer<typeof userSchema>
+export type NewUser = z.infer<typeof newUserSchema>
+
+export type Sale = z.infer<typeof saleSchema>
+export type NewSale = z.infer<typeof newSaleSchema>
