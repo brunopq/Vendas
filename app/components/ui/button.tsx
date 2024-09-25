@@ -8,6 +8,12 @@ const buttonVariants = cva(
   "inline-flex items-center shadow-sm justify-center whitespace-nowrap rounded-md font-medium transition-colors disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
+      size: {
+        default: "px-4 py-2",
+        sm: "rounded-md text-sm py-1 px-3",
+        lg: "rounded-md text-lg py-2 px-8",
+        icon: "size-10",
+      },
       variant: {
         default:
           "bg-primary-700 text-primary-50 hover:bg-primary-700/90 dark:bg-primary-50 dark:text-primary-900 dark:hover:bg-primary-50/90",
@@ -19,13 +25,7 @@ const buttonVariants = cva(
           "bg-zinc-100 text-zinc-900 hover:bg-zinc-100/80 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-800/80",
         ghost:
           "shadow-none hover:bg-primary-100 hover:text-primary-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50",
-        link: "text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-50",
-      },
-      size: {
-        default: "px-4 py-2",
-        sm: "rounded-md text-sm py-1 px-3",
-        lg: "rounded-md text-lg py-2 px-8",
-        icon: "size-10",
+        link: "shadow-none p-0 text-accent-600 underline-offset-4 hover:underline dark:text-accent-400",
       },
     },
     defaultVariants: {
