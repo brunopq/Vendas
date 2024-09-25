@@ -3,6 +3,8 @@ import { Link, useLoaderData } from "@remix-run/react"
 
 import { getSession } from "~/session"
 
+import { maxWidth } from "~/lib/utils"
+
 import { Button } from "~/components/ui/button"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -20,13 +22,14 @@ export default function App() {
 
   return (
     <div>
-      <nav className="flex items-center justify-between gap-4 border-primary-300 border-b p-2">
+      <nav className={maxWidth("flex items-center justify-between gap-4 py-4")}>
         <h1>Olá, {user.name}</h1>
 
         <Button asChild variant="destructive" size="sm">
           <Link to="/sign-out">sair</Link>
         </Button>
       </nav>
+      <hr className="border-primary-300" />
     </div>
   )
 }
