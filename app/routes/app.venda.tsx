@@ -13,6 +13,7 @@ import {
 } from "~/components/ui/select"
 import { Checkbox } from "~/components/ui/checkbox"
 import { Button } from "~/components/ui/button"
+import FormGroup from "~/components/FormGroup"
 
 export default function Venda() {
   return (
@@ -28,15 +29,16 @@ export default function Venda() {
       </header>
 
       <Form className="grid gap-4 sm:grid-cols-2">
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanati */}
-        <label>
-          Data da venda
-          <Input type="date" />
-        </label>
+        <FormGroup name="data" label="Data da venda">
+          <Input id="data" type="date" />
+        </FormGroup>
 
         <div className="flex flex-wrap gap-4">
-          <div className="flex flex-1 flex-col">
-            <span>Tipo de captação</span>
+          <FormGroup
+            className="flex flex-1 flex-col"
+            name="type"
+            label="Tipo de captação"
+          >
             <RadioGroup className="flex flex-1 gap-4">
               {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
               <label className="flex items-center gap-2">
@@ -47,26 +49,24 @@ export default function Venda() {
                 <RadioGroupItem value="passiva" /> Passiva
               </label>
             </RadioGroup>
-          </div>
+          </FormGroup>
 
-          {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-          <label className="flex flex-1 flex-col">
-            <span className="whitespace-nowrap">É recompra?</span>
+          <FormGroup
+            className="flex flex-1 flex-col"
+            name="isRepurchase"
+            label="É recompra"
+          >
             <span className="flex flex-1 items-center gap-2">
-              Sim <Checkbox className="block" />
+              Sim <Checkbox id="isRepurchase" className="block" />
             </span>
-          </label>
+          </FormGroup>
         </div>
 
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label>
-          Cliente
+        <FormGroup name="client" label="Cliente">
           <Input placeholder="Nome do cliente" />
-        </label>
+        </FormGroup>
 
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label>
-          Área
+        <FormGroup name="area" label="Área">
           <Select>
             <SelectTrigger>
               <SelectValue placeholder="Selecione..." />
@@ -79,25 +79,23 @@ export default function Venda() {
               <SelectItem value="penal">Penal</SelectItem>
             </SelectContent>
           </Select>
-        </label>
+        </FormGroup>
 
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label>
-          Parte adversa
+        <FormGroup name="adverseParty" label="Parte adversa">
           <Input placeholder="Parte adversa" />
-        </label>
+        </FormGroup>
 
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label>
-          Valor estimado
+        <FormGroup name="estimatedValue" label="Valor estimado">
           <Input placeholder="R$ 1.000,00" />
-        </label>
+        </FormGroup>
 
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label className="col-span-full">
-          Observações
+        <FormGroup
+          className="col-span-full"
+          name="comments"
+          label="Observações"
+        >
           <Textarea placeholder="Outras informações relevantes..." />
-        </label>
+        </FormGroup>
 
         <Button className="col-span-full mt-2 mr-auto w-fit">
           Criar venda
