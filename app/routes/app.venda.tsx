@@ -56,9 +56,10 @@ export default function Venda() {
             name="isRepurchase"
             label="É recompra"
           >
-            <span className="flex flex-1 items-center gap-2">
+            {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+            <label className="flex flex-1 items-center gap-2">
               Sim <Checkbox id="isRepurchase" className="block" />
-            </span>
+            </label>
           </FormGroup>
         </div>
 
