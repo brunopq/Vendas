@@ -1,4 +1,5 @@
-import { Form } from "@remix-run/react"
+import { Form, Link } from "@remix-run/react"
+import { ArrowLeft } from "lucide-react"
 
 import { Input } from "~/components/ui/input"
 import { Textarea } from "~/components/ui/textarea"
@@ -16,7 +17,15 @@ import { Button } from "~/components/ui/button"
 export default function Venda() {
   return (
     <>
-      <h2 className="mb-4 font-medium text-2xl">Nova venda</h2>
+      <header className="mb-4 flex items-center gap-2">
+        <Button asChild variant="ghost" size="icon">
+          <Link to="/app">
+            <ArrowLeft />
+          </Link>
+        </Button>
+
+        <h2 className="font-medium text-2xl">Nova venda</h2>
+      </header>
 
       <Form className="grid gap-4 sm:grid-cols-2">
         {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanati */}
