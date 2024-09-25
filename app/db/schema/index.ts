@@ -49,8 +49,11 @@ export const sale = pgTable("sales", {
   // TODO: make a separate table, integrate with CRM...
   client: text("client").notNull(),
   adverseParty: text("adverse_party").notNull(),
-  isRepurchase: boolean("is_repurchase").default(false),
-  estimatedValue: numeric("estimated_value", { precision: 16, scale: 2 }),
+  isRepurchase: boolean("is_repurchase").notNull(),
+  estimatedValue: numeric("estimated_value", {
+    precision: 16,
+    scale: 2,
+  }).notNull(),
   comments: text("comments"),
 })
 
