@@ -18,15 +18,15 @@ export default function Venda() {
     <>
       <h2 className="mb-4 font-medium text-2xl">Nova venda</h2>
 
-      <Form className="grid grid-cols-2 gap-4">
+      <Form className="grid gap-4 sm:grid-cols-2">
         {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanati */}
         <label>
           Data da venda
           <Input type="date" />
         </label>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex flex-1 flex-col">
             <span>Tipo de captação</span>
             <RadioGroup className="flex flex-1 gap-4">
               {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
@@ -41,8 +41,8 @@ export default function Venda() {
           </div>
 
           {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-          <label className="flex flex-col">
-            É recompra?
+          <label className="flex flex-1 flex-col">
+            <span className="whitespace-nowrap">É recompra?</span>
             <span className="flex flex-1 items-center gap-2">
               Sim <Checkbox className="block" />
             </span>
