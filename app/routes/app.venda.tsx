@@ -11,26 +11,48 @@ import {
   SelectValue,
 } from "~/components/ui/select"
 import { Checkbox } from "~/components/ui/checkbox"
+import { Button } from "~/components/ui/button"
 
 export default function Venda() {
   return (
     <>
-      <h2 className="font-medium text-2xl">Nova venda</h2>
+      <h2 className="mb-4 font-medium text-2xl">Nova venda</h2>
 
-      <Form>
+      <Form className="grid grid-cols-2 gap-4">
         {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanati */}
         <label>
           Data da venda
           <Input type="date" />
         </label>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col">
+            <span>Tipo de captação</span>
+            <RadioGroup className="flex flex-1 gap-4">
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+              <label className="flex items-center gap-2">
+                <RadioGroupItem value="ativa" /> Ativa
+              </label>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+              <label className="flex items-center gap-2">
+                <RadioGroupItem value="passiva" /> Passiva
+              </label>
+            </RadioGroup>
+          </div>
+
+          {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+          <label className="flex flex-col">
+            É recompra?
+            <span className="flex flex-1 items-center gap-2">
+              Sim <Checkbox className="block" />
+            </span>
+          </label>
+        </div>
+
         {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
         <label>
-          Tipo de captação
-          <RadioGroup>
-            <RadioGroupItem value="ativa" /> Ativa
-            <RadioGroupItem value="passiva" /> Passiva
-          </RadioGroup>
+          Cliente
+          <Input placeholder="Nome do cliente" />
         </label>
 
         {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
@@ -38,7 +60,7 @@ export default function Venda() {
           Área
           <Select>
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Selecione..." />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="trabalhista">Trabalhista</SelectItem>
@@ -52,20 +74,8 @@ export default function Venda() {
 
         {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
         <label>
-          Cliente
-          <Input placeholder="Nome do cliente" />
-        </label>
-
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label>
           Parte adversa
           <Input placeholder="Parte adversa" />
-        </label>
-
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label className="flex items-center gap-4">
-          Recompra
-          <Checkbox />
         </label>
 
         {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
@@ -75,10 +85,14 @@ export default function Venda() {
         </label>
 
         {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label>
+        <label className="col-span-full">
           Observações
           <Textarea placeholder="Outras informações relevantes..." />
         </label>
+
+        <Button className="col-span-full mt-2 mr-auto w-fit">
+          Criar venda
+        </Button>
       </Form>
     </>
   )
