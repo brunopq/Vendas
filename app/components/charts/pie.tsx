@@ -1,8 +1,6 @@
 import * as d3 from "d3"
 import { useEffect, useMemo, useState } from "react"
 
-import type { KeyOfType } from "~/types/KeyOfType"
-
 type Arc<T> = {
   angles: d3.PieArcDatum<T>
   id: string
@@ -22,7 +20,7 @@ type GraphProps<T extends BaseT> = {
   m?: number
 } & (
   | {
-      color: KeyOfType<T, string> | ((el: T) => string)
+      color: (el: T) => string
       colorStops?: never
     }
   | {
@@ -60,8 +58,7 @@ export function PieChart<T extends BaseT>({
     let c: string
 
     if (color) {
-      c =
-        typeof color !== "function" ? (d.data[color] as string) : color(d.data)
+      c = color(d.data)
     } else if (colorStops) {
       c = `color-mix(in srgb, ${colorStops[0]} ${d3.scaleLinear([0, angles.length], [0, 100])(i)}%, ${colorStops[1]})`
     } else throw new Error("unreachable")

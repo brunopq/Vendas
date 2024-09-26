@@ -1,7 +1,5 @@
 import * as d3 from "d3"
 
-import type { KeyOfType } from "~/types/KeyOfType"
-
 type BarChartProps<T extends { id: string }> = {
   data: T[]
   value: (item: T) => number
@@ -11,7 +9,7 @@ type BarChartProps<T extends { id: string }> = {
   m?: number
 } & (
   | {
-      color: KeyOfType<T, string> | ((el: T) => string)
+      color: (el: T) => string
       colorStops?: never
     }
   | {
@@ -46,7 +44,7 @@ export function BarChart<T extends { id: string }>({
     let c: string
 
     if (color) {
-      c = typeof color !== "function" ? (d[color] as string) : color(d)
+      c = color(d)
     } else if (colorStops) {
       c = `color-mix(in srgb, ${colorStops[0]} ${d3.scaleLinear([0, data.length], [0, 100])(i)}%, ${colorStops[1]})`
     } else throw new Error("unreachable")
