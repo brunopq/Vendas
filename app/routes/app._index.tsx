@@ -18,18 +18,38 @@ import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const user = getUser(request)
+  const user = await getUser(request)
 
-  const data = await SalesService.index()
+  const [data, userData, newClients] = await Promise.all([
+    SalesService.getByMonth(9, 2024),
+    SalesService.getByMonthAndUser(9, 2024, user.id),
+    SalesService.getNewClientsByMonth(9, 2024),
+  ])
 
-  return json(data)
+  const repurchase: { total: number; user: number } = { total: 0, user: 0 }
+
+  for (const d of data) {
+    if (d.isRepurchase) {
+      d.seller === user.id && repurchase.user++
+      repurchase.total++
+    }
+  }
+
+  return json({
+    monthScoped: {
+      total: data,
+      user: userData,
+      newClients,
+      repurchase,
+    },
+  })
 }
 
 export default function App() {
-  const data = useLoaderData<typeof loader>()
+  const { monthScoped } = useLoaderData<typeof loader>()
 
   const salesByArea = Object.entries(
-    data.reduce(
+    monthScoped.total.reduce(
       (acc, i) => {
         acc[i.area] = acc[i.area] + 1 || 1
         return acc
@@ -39,7 +59,7 @@ export default function App() {
   ).map(([k, v]) => ({ id: k, area: k, value: v }))
 
   const salesByType = Object.entries(
-    data.reduce(
+    monthScoped.newClients.reduce(
       (acc, i) => {
         acc[i.sellType] = acc[i.sellType] + 1 || 1
         return acc
@@ -64,11 +84,15 @@ export default function App() {
 
             <div className="flex flex-col items-center justify-between gap-6">
               Você
-              <strong className="text-3xl text-primary-700">4</strong>
+              <strong className="text-3xl text-primary-700">
+                {monthScoped.user.length}
+              </strong>
             </div>
             <div className="flex flex-col items-center justify-between gap-6">
               Total
-              <strong className="text-3xl text-primary-700">7</strong>
+              <strong className="text-3xl text-primary-700">
+                {monthScoped.total.length}
+              </strong>
             </div>
           </div>
 
@@ -108,11 +132,15 @@ export default function App() {
 
             <div className="flex flex-col items-center justify-between gap-6">
               Você
-              <strong className="text-3xl text-primary-700">4</strong>
+              <strong className="text-3xl text-primary-700">
+                {monthScoped.repurchase.user}
+              </strong>
             </div>
             <div className="flex flex-col items-center justify-between gap-6">
               Total
-              <strong className="text-3xl text-primary-700">7</strong>
+              <strong className="text-3xl text-primary-700">
+                {monthScoped.repurchase.total}
+              </strong>
             </div>
           </div>
         </div>
@@ -127,6 +155,7 @@ export default function App() {
           </Button>
         </header>
 
+        {/* 
         <Table>
           <TableHeader>
             <TableRow>
@@ -156,6 +185,7 @@ export default function App() {
             ))}
           </TableBody>
         </Table>
+*/}
       </div>
     </div>
   )
