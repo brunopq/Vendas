@@ -6,7 +6,9 @@ export { newSaleSchema }
 
 class SalesService {
   async index() {
-    return await db.query.sale.findMany()
+    return await db.query.sale.findMany({
+      with: { seller: { columns: { name: true } } },
+    })
   }
 
   async create(newSale: NewSale) {
