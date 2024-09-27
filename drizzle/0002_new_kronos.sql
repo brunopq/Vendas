@@ -1,0 +1,1 @@
+ALTER TABLE "sales" ALTER COLUMN "date" SET NOT NULL;
