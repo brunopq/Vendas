@@ -1,10 +1,12 @@
 import type { ActionFunctionArgs } from "@remix-run/node"
-import { Form, json, Link } from "@remix-run/react"
+import { Form, json, Link, useActionData } from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
 
 import { getUser } from "~/session"
 
 import SalesService, { newSaleSchema } from "~/services/SalesService"
+
+import { ErrorProvider } from "~/context/ErrorsContext"
 
 import { Input } from "~/components/ui/input"
 import { Textarea } from "~/components/ui/textarea"
@@ -18,39 +20,59 @@ import {
 } from "~/components/ui/select"
 import { Checkbox } from "~/components/ui/checkbox"
 import { Button } from "~/components/ui/button"
+
 import FormGroup from "~/components/FormGroup"
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const user = await getUser(request)
+  try {
+    const user = await getUser(request)
 
-  const formData = await request.formData()
+    const formData = await request.formData()
 
-  const data = [...formData.entries()].reduce(
-    (acc, [k, v]) => {
-      acc[k] = String(v)
-      return acc
-    },
-    {} as Record<string, unknown>,
-  )
-  data.seller = user.id
+    const data = [...formData.entries()].reduce(
+      (acc, [k, v]) => {
+        if (v) {
+          acc[k] = String(v)
+        }
+        return acc
+      },
+      {} as Record<string, unknown>,
+    )
+    data.seller = user.id
 
-  if (data.isRepurchase === "on") {
-    data.isRepurchase = true
-  } else {
-    data.isRepurchase = false
+    if (data.isRepurchase === "on") {
+      data.isRepurchase = true
+    } else {
+      data.isRepurchase = false
+    }
+
+    const parsed = newSaleSchema.safeParse(data)
+    if (!parsed.success) {
+      const errors = parsed.error.format()
+
+      return json({
+        formErrors: Object.keys(errors),
+      })
+    }
+
+    return json(SalesService.create(parsed.data))
+  } catch (e) {
+    return json({
+      errors: e,
+    })
   }
-
-  const res = newSaleSchema.safeParse(data)
-  if (res.success) {
-    return json(await SalesService.create(res.data))
-  }
-
-  throw res.error
 }
 
 export default function Venda() {
+  const response = useActionData<typeof action>()
+
+  let errors: { type: string; message: string }[] = []
+  if (response && "formErrors" in response) {
+    errors = response.formErrors.map((e) => ({ type: e, message: "error" }))
+  }
+
   return (
-    <>
+    <ErrorProvider initialErrors={errors}>
       <header className="mb-4 flex items-center gap-2">
         <Button asChild variant="ghost" size="icon">
           <Link to="/app">
@@ -72,16 +94,22 @@ export default function Venda() {
             name="sellType"
             label="Tipo de captação"
           >
-            <RadioGroup name="sellType" className="flex flex-1 gap-4">
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-              <label className="flex items-center gap-2">
-                <RadioGroupItem value="ATIVO" /> Ativa
-              </label>
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-              <label className="flex items-center gap-2">
-                <RadioGroupItem value="PASSIVO" /> Passiva
-              </label>
-            </RadioGroup>
+            {(removeErrors) => (
+              <RadioGroup
+                onChange={removeErrors}
+                name="sellType"
+                className="flex flex-1 gap-4"
+              >
+                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                <label className="flex items-center gap-2">
+                  <RadioGroupItem value="ATIVO" /> Ativa
+                </label>
+                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                <label className="flex items-center gap-2">
+                  <RadioGroupItem value="PASSIVO" /> Passiva
+                </label>
+              </RadioGroup>
+            )}
           </FormGroup>
 
           <FormGroup
@@ -102,38 +130,53 @@ export default function Venda() {
         </div>
 
         <FormGroup name="client" label="Cliente">
-          <Input name="client" id="client" placeholder="Nome do cliente" />
+          {(removeErrors) => (
+            <Input
+              name="client"
+              id="client"
+              placeholder="Nome do cliente"
+              onInput={removeErrors}
+            />
+          )}
         </FormGroup>
 
         <FormGroup name="area" label="Área">
-          <Select name="area">
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="TRABALHISTA">Trabalhista</SelectItem>
-              <SelectItem value="CÍVEL">Cível</SelectItem>
-              <SelectItem value="PREVIDENCIÁRIO">Previdenciário</SelectItem>
-              <SelectItem value="TRIBUTÁRIO">Tributário</SelectItem>
-              <SelectItem value="PENAL">Penal</SelectItem>
-            </SelectContent>
-          </Select>
+          {(removeErrors) => (
+            <Select onValueChange={removeErrors} name="area">
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="TRABALHISTA">Trabalhista</SelectItem>
+                <SelectItem value="CÍVEL">Cível</SelectItem>
+                <SelectItem value="PREVIDENCIÁRIO">Previdenciário</SelectItem>
+                <SelectItem value="TRIBUTÁRIO">Tributário</SelectItem>
+                <SelectItem value="PENAL">Penal</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </FormGroup>
 
         <FormGroup name="adverseParty" label="Parte adversa">
-          <Input
-            name="adverseParty"
-            id="adverseParty"
-            placeholder="Parte adversa"
-          />
+          {(removeErrors) => (
+            <Input
+              onInput={removeErrors}
+              name="adverseParty"
+              id="adverseParty"
+              placeholder="Parte adversa"
+            />
+          )}
         </FormGroup>
 
         <FormGroup name="estimatedValue" label="Valor estimado">
-          <Input
-            name="estimatedValue"
-            id="estimatedValue"
-            placeholder="R$ 1.000,00"
-          />
+          {(removeErrors) => (
+            <Input
+              onInput={removeErrors}
+              name="estimatedValue"
+              id="estimatedValue"
+              placeholder="R$ 1.000,00"
+            />
+          )}
         </FormGroup>
 
         <FormGroup
@@ -152,6 +195,6 @@ export default function Venda() {
           Criar venda
         </Button>
       </Form>
-    </>
+    </ErrorProvider>
   )
 }
