@@ -10,7 +10,7 @@ import {
 import { relations } from "drizzle-orm"
 import { customAlphabet } from "nanoid"
 import { createInsertSchema, createSelectSchema } from "drizzle-zod"
-import type { z } from "zod"
+import { z } from "zod"
 
 const idLength = 12
 const nanoid = customAlphabet(
@@ -63,6 +63,11 @@ export const saleRelations = relations(sale, ({ one }) => ({
 
 //
 // types and schemas
+
+export const areaSchema = (params?: z.RawCreateParams) =>
+  z.enum(areas.enumValues, params)
+export const sellTypeSchema = (params?: z.RawCreateParams) =>
+  z.enum(sellTypes.enumValues, params)
 
 export const userSchema = createSelectSchema(user)
 export const newUserSchema = createInsertSchema(user)
