@@ -1,5 +1,15 @@
-import type { ActionFunctionArgs, TypedResponse } from "@remix-run/node"
-import { Form, Link, useActionData } from "@remix-run/react"
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  TypedResponse,
+} from "@remix-run/node"
+import {
+  Form,
+  json,
+  Link,
+  useActionData,
+  useLoaderData,
+} from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
 import { z } from "zod"
 
@@ -7,7 +17,7 @@ import { type Result, typedOk, typedError } from "~/lib/result"
 
 import { getUser } from "~/session"
 
-import { areaSchema, sellTypeSchema } from "~/db/schema"
+import { sellTypeSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
@@ -26,16 +36,14 @@ import { Checkbox } from "~/components/ui/checkbox"
 import { Button } from "~/components/ui/button"
 
 import FormGroup from "~/components/FormGroup"
+import SaleAreaService from "~/services/SaleAreaService"
 
 const formSchema = z.object({
   date: z
     .string({ required_error: "Insira uma data" })
     .date("Data mal formatada"),
   seller: z.string({ message: "Seller is required" }),
-  area: areaSchema({
-    required_error: "Área da venda deve ser preenchida",
-    invalid_type_error: "Área inválida",
-  }),
+  area: z.string({ required_error: "Selecione a área da venda" }),
   sellType: sellTypeSchema({
     required_error: "Escolha um tipo de venda",
     invalid_type_error: "Tipo de venda inválido",
@@ -52,6 +60,14 @@ const formSchema = z.object({
     .regex(/^\d+(\.\d{1,2})?$/, "Valor estimado deve estar no formato correto"),
   comments: z.string().optional(),
 })
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const _ = await getUser(request)
+
+  const areas = await SaleAreaService.index()
+
+  return json(areas)
+}
 
 type ActionResponse = Result<DomainSale, ErrorT[]>
 export const action = async ({
@@ -95,6 +111,7 @@ export const action = async ({
 }
 
 export default function Venda() {
+  const areas = useLoaderData<typeof loader>()
   const response = useActionData<typeof action>()
 
   let errors: ErrorT[] = []
@@ -178,11 +195,11 @@ export default function Venda() {
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="TRABALHISTA">Trabalhista</SelectItem>
-                <SelectItem value="CÍVEL">Cível</SelectItem>
-                <SelectItem value="PREVIDENCIÁRIO">Previdenciário</SelectItem>
-                <SelectItem value="TRIBUTÁRIO">Tributário</SelectItem>
-                <SelectItem value="PENAL">Penal</SelectItem>
+                {areas.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}
