@@ -1,12 +1,14 @@
 import type { ActionFunctionArgs } from "@remix-run/node"
 import { Form, json, Link, useActionData } from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
+import { z } from "zod"
 
 import { getUser } from "~/session"
 
-import SalesService, { newSaleSchema } from "~/services/SalesService"
+import { areaSchema, sellTypeSchema } from "~/db/schema"
+import SalesService from "~/services/SalesService"
 
-import { ErrorProvider } from "~/context/ErrorsContext"
+import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
 import { Input } from "~/components/ui/input"
 import { Textarea } from "~/components/ui/textarea"
@@ -23,21 +25,46 @@ import { Button } from "~/components/ui/button"
 
 import FormGroup from "~/components/FormGroup"
 
+const formSchema = z.object({
+  date: z
+    .string({ required_error: "Insira uma data" })
+    .date("Data mal formatada"),
+  seller: z.string({ message: "Seller is required" }),
+  area: areaSchema({
+    required_error: "Área da venda deve ser preenchida",
+    invalid_type_error: "Área inválida",
+  }),
+  sellType: sellTypeSchema({
+    required_error: "Escolha um tipo de venda",
+    invalid_type_error: "Tipo de venda inválido",
+  }),
+  client: z
+    .string({ required_error: "Insira o nome do cliente" })
+    .min(1, "Insira o nome do cliente"),
+  adverseParty: z
+    .string({ required_error: "Insira a parte adversa" })
+    .min(1, "Insira a parte adversa"),
+  isRepurchase: z.coerce.boolean().default(false),
+  estimatedValue: z
+    .string({ required_error: "Insira um valor estimado" })
+    .regex(/^\d+(\.\d{1,2})?$/, "Valor estimado deve estar no formato correto"),
+  comments: z.string().optional(),
+})
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const user = await getUser(request)
 
     const formData = await request.formData()
 
-    const data = [...formData.entries()].reduce(
-      (acc, [k, v]) => {
-        if (v) {
-          acc[k] = String(v)
-        }
-        return acc
-      },
-      {} as Record<string, unknown>,
-    )
+    const data: Record<string, unknown> = {}
+
+    for (const [field, value] of formData) {
+      if (value) {
+        data[field] = String(value)
+      }
+    }
+
     data.seller = user.id
 
     if (data.isRepurchase === "on") {
@@ -46,12 +73,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       data.isRepurchase = false
     }
 
-    const parsed = newSaleSchema.safeParse(data)
+    const parsed = formSchema.safeParse(data)
     if (!parsed.success) {
-      const errors = parsed.error.format()
+      const errors = parsed.error.issues.map((i) => ({
+        type: i.path.join("/"),
+        message: i.message,
+      }))
 
       return json({
-        formErrors: Object.keys(errors),
+        formErrors: errors,
       })
     }
 
@@ -66,9 +96,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Venda() {
   const response = useActionData<typeof action>()
 
-  let errors: { type: string; message: string }[] = []
+  let errors: ErrorT[] = []
   if (response && "formErrors" in response) {
-    errors = response.formErrors.map((e) => ({ type: e, message: "error" }))
+    errors = response.formErrors
   }
 
   return (
