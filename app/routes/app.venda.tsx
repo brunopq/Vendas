@@ -1,12 +1,14 @@
-import type { ActionFunctionArgs } from "@remix-run/node"
-import { Form, json, Link, useActionData } from "@remix-run/react"
+import type { ActionFunctionArgs, TypedResponse } from "@remix-run/node"
+import { Form, Link, useActionData } from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
 import { z } from "zod"
+
+import { type Result, typedOk, typedError } from "~/lib/result"
 
 import { getUser } from "~/session"
 
 import { areaSchema, sellTypeSchema } from "~/db/schema"
-import SalesService from "~/services/SalesService"
+import SalesService, { type DomainSale } from "~/services/SalesService"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
@@ -51,7 +53,10 @@ const formSchema = z.object({
   comments: z.string().optional(),
 })
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+type ActionResponse = Result<DomainSale, ErrorT[]>
+export const action = async ({
+  request,
+}: ActionFunctionArgs): Promise<TypedResponse<ActionResponse>> => {
   try {
     const user = await getUser(request)
 
@@ -80,16 +85,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         message: i.message,
       }))
 
-      return json({
-        formErrors: errors,
-      })
+      return typedError(errors)
     }
 
-    return json(SalesService.create(parsed.data))
+    return typedOk(await SalesService.create(parsed.data))
   } catch (e) {
-    return json({
-      errors: e,
-    })
+    return typedError([{ type: "backend", message: "unknown backend error" }])
   }
 }
 
@@ -97,8 +98,8 @@ export default function Venda() {
   const response = useActionData<typeof action>()
 
   let errors: ErrorT[] = []
-  if (response && "formErrors" in response) {
-    errors = response.formErrors
+  if (response && !response.ok) {
+    errors = response.error
   }
 
   return (
