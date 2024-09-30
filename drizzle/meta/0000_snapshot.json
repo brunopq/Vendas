@@ -1,9 +1,43 @@
 {
-  "id": "b5810918-807f-4eba-baf8-5970f0cf7974",
+  "id": "3cdbe588-19e0-4605-8c40-507e2cf0b8de",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.areas": {
+      "name": "areas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "char(12)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "goal": {
+          "name": "goal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prize": {
+          "name": "prize",
+          "type": "numeric(16, 2)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "public.sales": {
       "name": "sales",
       "schema": "",
@@ -18,7 +52,7 @@
           "name": "date",
           "type": "date",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "seller": {
@@ -36,8 +70,7 @@
         },
         "area": {
           "name": "area",
-          "type": "areas",
-          "typeSchema": "public",
+          "type": "char(12)",
           "primaryKey": false,
           "notNull": true
         },
@@ -57,14 +90,13 @@
           "name": "is_repurchase",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false,
-          "default": false
+          "notNull": true
         },
         "estimated_value": {
           "name": "estimated_value",
           "type": "numeric(16, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "comments": {
           "name": "comments",
@@ -81,6 +113,19 @@
           "tableTo": "users",
           "columnsFrom": [
             "seller"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sales_area_areas_id_fk": {
+          "name": "sales_area_areas_id_fk",
+          "tableFrom": "sales",
+          "tableTo": "areas",
+          "columnsFrom": [
+            "area"
           ],
           "columnsTo": [
             "id"
@@ -130,17 +175,6 @@
     }
   },
   "enums": {
-    "public.areas": {
-      "name": "areas",
-      "schema": "public",
-      "values": [
-        "TRABALHISTA",
-        "CÍVEL",
-        "PREVIDENCIÁRIO",
-        "TRIBUTÁRIO",
-        "PENAL"
-      ]
-    },
     "public.sell_type": {
       "name": "sell_type",
       "schema": "public",
