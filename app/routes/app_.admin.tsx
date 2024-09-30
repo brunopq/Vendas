@@ -1,4 +1,5 @@
-import { json, redirect, type LoaderFunctionArgs } from "@remix-run/node"
+import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import { Form, useLoaderData } from "@remix-run/react"
 import { Plus } from "lucide-react"
 
 import AuthService from "~/services/AuthService"
@@ -7,7 +8,6 @@ import { getUser } from "~/session"
 import { maxWidth } from "~/lib/utils"
 
 import { Button } from "~/components/ui/button"
-import { useLoaderData } from "@remix-run/react"
 import {
   Table,
   TableBody,
@@ -16,6 +16,17 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog"
+import { Input } from "~/components/ui/input"
+
+import FormGroup from "~/components/FormGroup"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await getUser(request)
@@ -43,9 +54,38 @@ export default function Admin() {
         <header className="mb-4 flex items-center justify-between gap-2">
           <h2 className="font-medium text-2xl">Usuários</h2>
 
-          <Button icon="left" className="text-sm">
-            <Plus /> Novo
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button icon="left" className="text-sm">
+                <Plus /> Novo
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>Novo usuário</DialogTitle>
+
+              <Form className="flex flex-col gap-4">
+                <FormGroup name="name" label="Nome">
+                  <Input name="name" placeholder="Nome do usuário..." />
+                </FormGroup>
+                <FormGroup name="password" label="Senha">
+                  <Input
+                    name="password"
+                    placeholder="Senha..."
+                    type="password"
+                  />
+                </FormGroup>
+
+                <DialogFooter className="mt-4">
+                  <DialogClose asChild>
+                    <Button type="button" variant="ghost">
+                      Cancelar
+                    </Button>
+                  </DialogClose>
+                  <Button type="submit">Criar</Button>
+                </DialogFooter>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </header>
 
         <Table>
