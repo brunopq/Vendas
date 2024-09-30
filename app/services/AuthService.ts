@@ -1,14 +1,29 @@
 import { encryptPassword, verifyPassword } from "~/lib/hashing"
 
 import type { User } from "~/db/schema"
-import { user } from "~/db/schema"
+import { sale, user } from "~/db/schema"
 import { db } from "~/db"
+import { eq, sql } from "drizzle-orm"
 
 export type DomainUser = Omit<User, "passwordHash">
 export type NewUser = Omit<DomainUser, "id"> & { password: string }
 export type LoginUser = Omit<DomainUser, "id"> & { password: string }
 
 class AuthService {
+  async index() {
+    const users = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        totalSales: sql<number>`cast(count(${sale.id}) as int)`,
+      })
+      .from(user)
+      .leftJoin(sale, eq(user.id, sale.seller))
+      .groupBy(user.id)
+
+    return users
+  }
+
   async login(userInfo: LoginUser): Promise<DomainUser> {
     const user = await db.query.user.findFirst({
       where: ({ name }, { eq }) => eq(name, userInfo.name),
