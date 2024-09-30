@@ -19,7 +19,10 @@ class SalesService {
 
   async index() {
     return await db.query.sale.findMany({
-      with: { seller: { columns: { name: true } } },
+      with: {
+        area: { columns: { name: true } },
+        seller: { columns: { name: true } },
+      },
     })
   }
 
@@ -40,6 +43,7 @@ class SalesService {
           endOfMonth(date).toDateString(),
         ),
       with: {
+        area: { columns: { name: true } },
         seller: { columns: { name: true } },
       },
     })
@@ -59,6 +63,7 @@ class SalesService {
           ),
         ),
       with: {
+        area: { columns: { name: true } },
         seller: { columns: { name: true } },
       },
     })
@@ -78,6 +83,7 @@ class SalesService {
           ),
         ),
       with: {
+        area: { columns: { name: true } },
         seller: { columns: { name: true } },
       },
     })
