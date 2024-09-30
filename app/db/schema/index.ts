@@ -6,6 +6,7 @@ import {
   text,
   boolean,
   numeric,
+  integer,
 } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 import { customAlphabet } from "nanoid"
@@ -20,14 +21,6 @@ const nanoid = customAlphabet(
 
 export const sellTypes = pgEnum("sell_type", ["ATIVO", "PASSIVO"])
 
-export const areas = pgEnum("areas", [
-  "TRABALHISTA",
-  "CÍVEL",
-  "PREVIDENCIÁRIO",
-  "TRIBUTÁRIO",
-  "PENAL",
-])
-
 export const user = pgTable("users", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
   name: text("name").notNull().unique(),
@@ -38,6 +31,17 @@ export const userRelations = relations(user, ({ many }) => ({
   sales: many(sale),
 }))
 
+export const area = pgTable("areas", {
+  id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
+  name: text("name").notNull(),
+  goal: integer("goal").notNull(),
+  prize: numeric("prize", { precision: 16, scale: 2 }).notNull(),
+})
+
+export const areaRelations = relations(area, ({ many }) => ({
+  sales: many(sale),
+}))
+
 export const sale = pgTable("sales", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
   date: date("date").defaultNow().notNull(),
@@ -45,7 +49,9 @@ export const sale = pgTable("sales", {
     .references(() => user.id)
     .notNull(),
   sellType: sellTypes("sell_type").notNull(),
-  area: areas("area").notNull(),
+  area: char("area", { length: idLength })
+    .references(() => area.id)
+    .notNull(),
   // TODO: make a separate table, integrate with CRM...
   client: text("client").notNull(),
   adverseParty: text("adverse_party").notNull(),
@@ -59,13 +65,14 @@ export const sale = pgTable("sales", {
 
 export const saleRelations = relations(sale, ({ one }) => ({
   seller: one(user, { fields: [sale.seller], references: [user.id] }),
+  area: one(area, { fields: [sale.area], references: [area.id] }),
 }))
 
 //
 // types and schemas
 
-export const areaSchema = (params?: z.RawCreateParams) =>
-  z.enum(areas.enumValues, params)
+// export const areaSchema = (params?: z.RawCreateParams) =>
+//   z.enum(areas.enumValues, params)
 export const sellTypeSchema = (params?: z.RawCreateParams) =>
   z.enum(sellTypes.enumValues, params)
 
