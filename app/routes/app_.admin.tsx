@@ -1,11 +1,19 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
-import { Form, useLoaderData } from "@remix-run/react"
+import {
+  json,
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+} from "@remix-run/node"
+import { Form, useActionData, useLoaderData } from "@remix-run/react"
 import { Plus } from "lucide-react"
+import { z } from "zod"
 
 import AuthService from "~/services/AuthService"
 import { getUser } from "~/session"
 
+import { typedError, typedOk } from "~/lib/result"
 import { maxWidth } from "~/lib/utils"
+
+import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
 import { Button } from "~/components/ui/button"
 import {
@@ -28,6 +36,45 @@ import { Input } from "~/components/ui/input"
 
 import FormGroup from "~/components/FormGroup"
 
+const formSchema = z.object({
+  name: z.string({ required_error: "Insira o nome do usuário" }),
+  password: z.string({ required_error: "Insira uma senha para o usuário" }),
+})
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  try {
+    const user = await getUser(request)
+
+    // if (user.role !== 'admin') {
+    //   return redirect('/app', {status: 403})
+    // }
+
+    const formData = await request.formData()
+
+    const data: Record<string, unknown> = {}
+
+    for (const [field, value] of formData) {
+      if (value) {
+        data[field] = String(value)
+      }
+    }
+
+    const parsed = formSchema.safeParse(data)
+    if (!parsed.success) {
+      const errors = parsed.error.issues.map((i) => ({
+        type: i.path.join("/"),
+        message: i.message,
+      }))
+
+      return typedError(errors)
+    }
+
+    return typedOk(await AuthService.create(parsed.data))
+  } catch (e) {
+    return typedError([{ type: "backend", message: "unknown backend error" }])
+  }
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await getUser(request)
 
@@ -42,6 +89,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Admin() {
   const users = useLoaderData<typeof loader>()
+
+  const response = useActionData<typeof action>()
+
+  let errors: ErrorT[] = []
+  if (response && !response.ok) {
+    errors = response.error
+  }
 
   return (
     <>
@@ -63,27 +117,38 @@ export default function Admin() {
             <DialogContent>
               <DialogTitle>Novo usuário</DialogTitle>
 
-              <Form className="flex flex-col gap-4">
-                <FormGroup name="name" label="Nome">
-                  <Input name="name" placeholder="Nome do usuário..." />
-                </FormGroup>
-                <FormGroup name="password" label="Senha">
-                  <Input
-                    name="password"
-                    placeholder="Senha..."
-                    type="password"
-                  />
-                </FormGroup>
+              <ErrorProvider initialErrors={errors}>
+                <Form method="post" className="flex flex-col gap-4">
+                  <FormGroup name="name" label="Nome">
+                    {(removeError) => (
+                      <Input
+                        onInput={removeError}
+                        name="name"
+                        placeholder="Nome do usuário..."
+                      />
+                    )}
+                  </FormGroup>
+                  <FormGroup name="password" label="Senha">
+                    {(removeError) => (
+                      <Input
+                        onInput={removeError}
+                        name="password"
+                        placeholder="Senha..."
+                        type="password"
+                      />
+                    )}
+                  </FormGroup>
 
-                <DialogFooter className="mt-4">
-                  <DialogClose asChild>
-                    <Button type="button" variant="ghost">
-                      Cancelar
-                    </Button>
-                  </DialogClose>
-                  <Button type="submit">Criar</Button>
-                </DialogFooter>
-              </Form>
+                  <DialogFooter className="mt-4">
+                    <DialogClose asChild>
+                      <Button type="button" variant="ghost">
+                        Cancelar
+                      </Button>
+                    </DialogClose>
+                    <Button type="submit">Criar</Button>
+                  </DialogFooter>
+                </Form>
+              </ErrorProvider>
             </DialogContent>
           </Dialog>
         </header>
