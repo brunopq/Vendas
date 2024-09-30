@@ -1,4 +1,5 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import { Link, useLoaderData } from "@remix-run/react"
 
 import { getUser } from "~/session"
 
@@ -12,8 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table"
-import { Link, useLoaderData } from "@remix-run/react"
 import { Button } from "~/components/ui/button"
+
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 
@@ -51,7 +52,7 @@ export default function App() {
   const salesByArea = Object.entries(
     monthScoped.total.reduce(
       (acc, i) => {
-        acc[i.area] = acc[i.area] + 1 || 1
+        acc[i.area.name] = acc[i.area.name] + 1 || 1
         return acc
       },
       {} as Record<string, number>,
