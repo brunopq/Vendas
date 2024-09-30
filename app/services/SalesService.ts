@@ -1,8 +1,10 @@
 import { endOfMonth, startOfMonth } from "date-fns"
 
 import { db } from "~/db"
-import { newSaleSchema, sale, type NewSale as DbNewSale } from "~/db/schema"
+import { newSaleSchema, sale } from "~/db/schema"
+import type { Sale as DbSale, NewSale as DbNewSale } from "~/db/schema"
 
+export type DomainSale = DbSale
 export type NewSale = DbNewSale
 export { newSaleSchema }
 
@@ -82,7 +84,7 @@ class SalesService {
   }
 
   async create(newSale: NewSale) {
-    const createdSale = await db.insert(sale).values(newSale).returning()
+    const [createdSale] = await db.insert(sale).values(newSale).returning()
 
     return createdSale
   }
