@@ -1,4 +1,4 @@
-import { createCookieSessionStorage, redirect } from "@remix-run/node"
+import { createCookieSessionStorage } from "@remix-run/node"
 
 import type { DomainUser } from "~/services/AuthService"
 
@@ -24,14 +24,10 @@ export const { commitSession, destroySession, getSession } =
     },
   })
 
-export async function getUser(request: Request): Promise<DomainUser> {
+export async function getUser(request: Request): Promise<DomainUser | null> {
   const session = await getSession(request.headers.get("Cookie"))
 
   const user = session.get("user")
 
-  if (!user) {
-    throw redirect("/")
-  }
-
-  return user
+  return user ?? null
 }

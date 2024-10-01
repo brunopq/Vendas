@@ -7,7 +7,7 @@ import { eq, sql } from "drizzle-orm"
 
 export type DomainUser = Omit<User, "passwordHash">
 export type NewUser = Omit<DomainUser, "id"> & { password: string }
-export type LoginUser = Omit<DomainUser, "id"> & { password: string }
+export type LoginUser = Omit<DomainUser, "id" | "role"> & { password: string }
 
 class AuthService {
   async index() {
@@ -44,6 +44,7 @@ class AuthService {
     return {
       id: user.id,
       name: user.name,
+      role: user.role,
     }
   }
 
@@ -63,6 +64,7 @@ class AuthService {
       .values({
         name: userInfo.name,
         passwordHash: hashedPassword,
+        role: userInfo.role,
       })
       .returning()
 
@@ -70,6 +72,7 @@ class AuthService {
     return {
       id: createdUser.id,
       name: createdUser.name,
+      role: createdUser.role,
     }
   }
 }

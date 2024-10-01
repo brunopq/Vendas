@@ -16,7 +16,7 @@ import { z } from "zod"
 
 import { type Result, typedOk, typedError } from "~/lib/result"
 
-import { getUser } from "~/session"
+import { getUserOrRedirect } from "~/lib/authGuard"
 
 import { sellTypeSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
@@ -65,7 +65,7 @@ const formSchema = z.object({
 })
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const _ = await getUser(request)
+  await getUserOrRedirect(request)
 
   const areas = await SaleAreaService.index()
 
@@ -77,7 +77,7 @@ export const action = async ({
   request,
 }: ActionFunctionArgs): Promise<TypedResponse<ActionResponse>> => {
   try {
-    const user = await getUser(request)
+    const user = await getUserOrRedirect(request)
 
     const formData = await request.formData()
 

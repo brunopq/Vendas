@@ -1,20 +1,13 @@
-import { json, type LoaderFunctionArgs, redirect } from "@remix-run/node"
+import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { Link, Outlet, useLoaderData } from "@remix-run/react"
 
-import { getSession } from "~/session"
-
 import { maxWidth } from "~/lib/utils"
+import { getUserOrRedirect } from "~/lib/authGuard"
 
 import { Button } from "~/components/ui/button"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const session = await getSession(request.headers.get("Cookie"))
-
-  if (!session.get("user")) {
-    return redirect("/login")
-  }
-
-  return json(session.data.user)
+  return json(await getUserOrRedirect(request))
 }
 
 export default function App() {

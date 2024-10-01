@@ -2,7 +2,7 @@ import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { z } from "zod"
 
-import { getUser } from "~/session"
+import { getUserOrRedirect } from "~/lib/authGuard"
 
 import SalesService from "~/services/SalesService"
 
@@ -29,7 +29,7 @@ import {
 const maybeNumber = z.coerce.number().nullable()
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const user = await getUser(request)
+  const user = await getUserOrRedirect(request)
 
   const url = new URL(request.url)
 

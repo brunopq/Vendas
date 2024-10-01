@@ -14,6 +14,7 @@ import AuthService from "~/services/AuthService"
 
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
+import { getUserOrRedirect } from "~/lib/authGuard"
 
 const formValidator = z.object({
   name: z.string().min(1),
@@ -21,13 +22,7 @@ const formValidator = z.object({
 })
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const session = await getSession(request.headers.get("Cookie"))
-
-  if (session.get("user")) {
-    return redirect("/app")
-  }
-
-  return null
+  await getUserOrRedirect(request, "/app")
 }
 
 export const action: ActionFunction = async ({ request }) => {

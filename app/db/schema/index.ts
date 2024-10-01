@@ -21,9 +21,12 @@ const nanoid = customAlphabet(
 
 export const sellTypes = pgEnum("sell_type", ["ATIVO", "PASSIVO"])
 
+export const userRoles = pgEnum("user_roles", ["ADMIN", "SELLER"])
+
 export const user = pgTable("users", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
   name: text("name").notNull().unique(),
+  role: userRoles("user_role").notNull(),
   passwordHash: text("password_hash").notNull(),
 })
 
@@ -71,10 +74,10 @@ export const saleRelations = relations(sale, ({ one }) => ({
 //
 // types and schemas
 
-// export const areaSchema = (params?: z.RawCreateParams) =>
-//   z.enum(areas.enumValues, params)
 export const sellTypeSchema = (params?: z.RawCreateParams) =>
   z.enum(sellTypes.enumValues, params)
+export const userRoleSchmea = (params?: z.RawCreateParams) =>
+  z.enum(userRoles.enumValues, params)
 
 export const userSchema = createSelectSchema(user)
 export const newUserSchema = createInsertSchema(user)

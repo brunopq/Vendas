@@ -8,8 +8,8 @@ import { Plus } from "lucide-react"
 import { z } from "zod"
 
 import AuthService from "~/services/AuthService"
-import { getUser } from "~/session"
 
+import { getAdminOrRedirect } from "~/lib/authGuard"
 import { typedError, typedOk } from "~/lib/result"
 import { maxWidth } from "~/lib/utils"
 
@@ -43,11 +43,7 @@ const formSchema = z.object({
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   try {
-    const user = await getUser(request)
-
-    // if (user.role !== 'admin') {
-    //   return redirect('/app', {status: 403})
-    // }
+    await getAdminOrRedirect(request)
 
     const formData = await request.formData()
 
@@ -76,7 +72,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const user = await getUser(request)
+  await getAdminOrRedirect(request)
 
   // if (user.role !== "admin") {
   //   return redirect("/app", { status: 403 })
