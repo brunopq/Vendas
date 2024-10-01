@@ -7,7 +7,7 @@ import { getUserOrRedirect } from "~/lib/authGuard"
 import { Button } from "~/components/ui/button"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return json(await getUserOrRedirect(request))
+  return json(await getUserOrRedirect(request, "/login"))
 }
 
 export default function App() {

@@ -7,6 +7,8 @@ import { Form, useActionData, useLoaderData } from "@remix-run/react"
 import { Plus } from "lucide-react"
 import { z } from "zod"
 
+import { userRoleSchmea } from "~/db/schema"
+
 import AuthService from "~/services/AuthService"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
@@ -35,10 +37,12 @@ import {
 import { Input } from "~/components/ui/input"
 
 import FormGroup from "~/components/FormGroup"
+import { Checkbox } from "~/components/ui/checkbox"
 
 const formSchema = z.object({
   name: z.string({ required_error: "Insira o nome do usuário" }),
   password: z.string({ required_error: "Insira uma senha para o usuário" }),
+  role: userRoleSchmea({ invalid_type_error: "Tipo de usuário inválido" }),
 })
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -53,6 +57,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (value) {
         data[field] = String(value)
       }
+    }
+
+    if (data.role === "on") {
+      data.role = "ADMIN"
+    } else {
+      data.role = "SELLER"
     }
 
     const parsed = formSchema.safeParse(data)
@@ -73,10 +83,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getAdminOrRedirect(request)
-
-  // if (user.role !== "admin") {
-  //   return redirect("/app", { status: 403 })
-  // }
 
   const users = await AuthService.index()
 
@@ -132,6 +138,15 @@ export default function Admin() {
                         placeholder="Senha..."
                         type="password"
                       />
+                    )}
+                  </FormGroup>
+                  <FormGroup
+                    className="flex items-center gap-4"
+                    name="role"
+                    label="É administrador?"
+                  >
+                    {(removeError) => (
+                      <Checkbox id="role" name="role" onInput={removeError} />
                     )}
                   </FormGroup>
 

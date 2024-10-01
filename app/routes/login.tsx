@@ -8,13 +8,12 @@ import {
 } from "@remix-run/react"
 import { z } from "zod"
 
-import { commitSession, getSession } from "~/session"
+import { commitSession, getSession, getUser } from "~/session"
 
 import AuthService from "~/services/AuthService"
 
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
-import { getUserOrRedirect } from "~/lib/authGuard"
 
 const formValidator = z.object({
   name: z.string().min(1),
@@ -22,7 +21,13 @@ const formValidator = z.object({
 })
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await getUserOrRedirect(request, "/app")
+  const user = await getUser(request)
+
+  if (user) {
+    throw redirect("/app")
+  }
+
+  return null
 }
 
 export const action: ActionFunction = async ({ request }) => {
