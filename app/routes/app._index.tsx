@@ -1,5 +1,6 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
+import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import { z } from "zod"
 
 import { getUser } from "~/session"
 
@@ -17,7 +18,6 @@ import { Button } from "~/components/ui/button"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
-import { z } from "zod"
 import {
   Select,
   SelectContent,
@@ -32,16 +32,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await getUser(request)
 
   const url = new URL(request.url)
-  let month = maybeNumber.parse(url.searchParams.get("mes"))
 
+  let month = maybeNumber.parse(url.searchParams.get("mes"))
   if (!month) {
     month = new Date().getMonth() + 1
   }
 
+  let year = maybeNumber.parse(url.searchParams.get("ano"))
+  if (!year) {
+    year = new Date().getFullYear()
+  }
   const [data, userData, newClients] = await Promise.all([
-    SalesService.getByMonth(month, 2024),
-    SalesService.getByMonthAndUser(month, 2024, user.id),
-    SalesService.getNewClientsByMonth(month, 2024),
+    SalesService.getByMonth(month, year),
+    SalesService.getByMonthAndUser(month, year, user.id),
+    SalesService.getNewClientsByMonth(month, year),
   ])
 
   const repurchase: { total: number; user: number } = { total: 0, user: 0 }
@@ -55,6 +59,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return json({
     month,
+    year,
     data: {
       total: data,
       user: userData,
@@ -65,8 +70,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export default function App() {
-  const { data, month } = useLoaderData<typeof loader>()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const { data } = useLoaderData<typeof loader>()
 
   const salesByArea = Object.entries(
     data.total.reduce(
@@ -94,35 +98,7 @@ export default function App() {
         <header className="mb-4 flex items-center justify-between gap-2">
           <h2 className="font-medium text-2xl">Este mês</h2>
 
-          <Select
-            onValueChange={(v) => setSearchParams({ mes: v })}
-            name="mes"
-            defaultValue={`${month}`}
-          >
-            <SelectTrigger showIcon={false} className="w-fit py-1.5 text-sm">
-              <SelectValue placeholder="Trocar mês" />
-            </SelectTrigger>
-            <SelectContent className="max-h-64">
-              {[
-                "Janeiro",
-                "Fevereiro",
-                "Março",
-                "Abril",
-                "Maio",
-                "Junho",
-                "Julho",
-                "Agosto",
-                "Setembro",
-                "Outubro",
-                "Novembro",
-                "Dezembro",
-              ].map((m, i) => (
-                <SelectItem key={m} value={`${i + 1}`}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DateSelection />
         </header>
 
         <div className="grid grid-cols-6 gap-4">
@@ -236,5 +212,61 @@ export default function App() {
 
       <footer className="mt-16 py-16" />
     </div>
+  )
+}
+
+function DateSelection() {
+  const { month, year } = useLoaderData<typeof loader>()
+  const [_, setSearchParams] = useSearchParams()
+
+  return (
+    <Form className="flex gap-1">
+      <Select
+        onValueChange={(v) => setSearchParams({ mes: v })}
+        name="mes"
+        defaultValue={`${month}`}
+      >
+        <SelectTrigger showIcon={false} className="w-fit py-1.5 text-sm">
+          <SelectValue placeholder="Trocar mês" />
+        </SelectTrigger>
+        <SelectContent className="max-h-64">
+          {[
+            "Janeiro",
+            "Fevereiro",
+            "Março",
+            "Abril",
+            "Maio",
+            "Junho",
+            "Julho",
+            "Agosto",
+            "Setembro",
+            "Outubro",
+            "Novembro",
+            "Dezembro",
+          ].map((m, i) => (
+            <SelectItem key={m} value={`${i + 1}`}>
+              {m}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        onValueChange={(v) => setSearchParams({ ano: v })}
+        name="ano"
+        defaultValue={`${year}`}
+      >
+        <SelectTrigger showIcon={false} className="w-fit py-1.5 text-sm">
+          <SelectValue placeholder="Trocar ano" />
+        </SelectTrigger>
+        <SelectContent className="max-h-64">
+          {[2023, 2024, 2025].map((a) => (
+            <SelectItem key={a} value={`${a}`}>
+              {a}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </Form>
   )
 }
