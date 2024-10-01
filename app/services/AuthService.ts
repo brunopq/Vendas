@@ -15,6 +15,7 @@ class AuthService {
       .select({
         id: user.id,
         name: user.name,
+        role: user.role,
         totalSales: sql<number>`cast(count(${sale.id}) as int)`,
       })
       .from(user)

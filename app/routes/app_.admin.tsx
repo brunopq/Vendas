@@ -13,7 +13,7 @@ import AuthService from "~/services/AuthService"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { typedError, typedOk } from "~/lib/result"
-import { maxWidth } from "~/lib/utils"
+import { cn, maxWidth } from "~/lib/utils"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
@@ -167,7 +167,8 @@ export default function Admin() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-24">Id</TableHead>
+              <TableHead className="w-0">Id</TableHead>
+              <TableHead className="w-0">Tipo</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Vendas</TableHead>
             </TableRow>
@@ -176,6 +177,15 @@ export default function Admin() {
             {users.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="text-sm text-zinc-600">{u.id}</TableCell>
+                <TableCell>
+                  <span
+                    className={cn("rounded-full px-3 py-1 text-sm", {
+                      "bg-primary-100 text-primary-800": u.role === "ADMIN",
+                    })}
+                  >
+                    {u.role === "ADMIN" ? "Administrador" : "Vendedor"}
+                  </span>
+                </TableCell>
                 <TableCell>{u.name}</TableCell>
                 <TableCell>{u.totalSales}</TableCell>
               </TableRow>
