@@ -203,7 +203,6 @@ export default function App() {
           </Button>
         </header>
 
-        {/* 
         <Table>
           <TableHeader>
             <TableRow>
@@ -219,11 +218,11 @@ export default function App() {
           </TableHeader>
 
           <TableBody>
-            {data.map((d) => (
+            {data.total.map((d) => (
               <TableRow key={d.id}>
                 <TableCell>{d.date}</TableCell>
                 <TableCell>{d.seller.name}</TableCell>
-                <TableCell>{d.area}</TableCell>
+                <TableCell>{d.area.name}</TableCell>
                 <TableCell>{d.adverseParty}</TableCell>
                 <TableCell>{d.estimatedValue}</TableCell>
                 <TableCell>{d.isRepurchase ? "Sim" : "Não"}</TableCell>
@@ -233,8 +232,9 @@ export default function App() {
             ))}
           </TableBody>
         </Table>
-*/}
       </div>
+
+      <footer className="mt-16 py-16" />
     </div>
   )
 }
