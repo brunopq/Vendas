@@ -1,5 +1,5 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
-import { Link, useLoaderData } from "@remix-run/react"
+import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
 
 import { getUser } from "~/session"
 
@@ -17,14 +17,31 @@ import { Button } from "~/components/ui/button"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
+import { z } from "zod"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select"
+
+const maybeNumber = z.coerce.number().nullable()
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await getUser(request)
 
+  const url = new URL(request.url)
+  let month = maybeNumber.parse(url.searchParams.get("mes"))
+
+  if (!month) {
+    month = new Date().getMonth() + 1
+  }
+
   const [data, userData, newClients] = await Promise.all([
-    SalesService.getByMonth(9, 2024),
-    SalesService.getByMonthAndUser(9, 2024, user.id),
-    SalesService.getNewClientsByMonth(9, 2024),
+    SalesService.getByMonth(month, 2024),
+    SalesService.getByMonthAndUser(month, 2024, user.id),
+    SalesService.getNewClientsByMonth(month, 2024),
   ])
 
   const repurchase: { total: number; user: number } = { total: 0, user: 0 }
@@ -37,7 +54,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   return json({
-    monthScoped: {
+    month,
+    data: {
       total: data,
       user: userData,
       newClients,
@@ -47,10 +65,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export default function App() {
-  const { monthScoped } = useLoaderData<typeof loader>()
+  const { data, month } = useLoaderData<typeof loader>()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const salesByArea = Object.entries(
-    monthScoped.total.reduce(
+    data.total.reduce(
       (acc, i) => {
         acc[i.area.name] = acc[i.area.name] + 1 || 1
         return acc
@@ -60,7 +79,7 @@ export default function App() {
   ).map(([k, v]) => ({ id: k, area: k, value: v }))
 
   const salesByType = Object.entries(
-    monthScoped.newClients.reduce(
+    data.newClients.reduce(
       (acc, i) => {
         acc[i.sellType] = acc[i.sellType] + 1 || 1
         return acc
@@ -75,7 +94,35 @@ export default function App() {
         <header className="mb-4 flex items-center justify-between gap-2">
           <h2 className="font-medium text-2xl">Este mês</h2>
 
-          <Button className="text-sm">Selecionar mês</Button>
+          <Select
+            onValueChange={(v) => setSearchParams({ mes: v })}
+            name="mes"
+            defaultValue={`${month}`}
+          >
+            <SelectTrigger showIcon={false} className="w-fit py-1.5 text-sm">
+              <SelectValue placeholder="Trocar mês" />
+            </SelectTrigger>
+            <SelectContent className="max-h-64">
+              {[
+                "Janeiro",
+                "Fevereiro",
+                "Março",
+                "Abril",
+                "Maio",
+                "Junho",
+                "Julho",
+                "Agosto",
+                "Setembro",
+                "Outubro",
+                "Novembro",
+                "Dezembro",
+              ].map((m, i) => (
+                <SelectItem key={m} value={`${i + 1}`}>
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </header>
 
         <div className="grid grid-cols-6 gap-4">
@@ -86,13 +133,13 @@ export default function App() {
             <div className="flex flex-col items-center justify-between gap-6">
               Você
               <strong className="text-3xl text-primary-700">
-                {monthScoped.user.length}
+                {data.user.length}
               </strong>
             </div>
             <div className="flex flex-col items-center justify-between gap-6">
               Total
               <strong className="text-3xl text-primary-700">
-                {monthScoped.total.length}
+                {data.total.length}
               </strong>
             </div>
           </div>
@@ -134,13 +181,13 @@ export default function App() {
             <div className="flex flex-col items-center justify-between gap-6">
               Você
               <strong className="text-3xl text-primary-700">
-                {monthScoped.repurchase.user}
+                {data.repurchase.user}
               </strong>
             </div>
             <div className="flex flex-col items-center justify-between gap-6">
               Total
               <strong className="text-3xl text-primary-700">
-                {monthScoped.repurchase.total}
+                {data.repurchase.total}
               </strong>
             </div>
           </div>
