@@ -11,6 +11,7 @@ import {
   useLoaderData,
 } from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
+import { useEffect } from "react"
 import { z } from "zod"
 
 import { type Result, typedOk, typedError } from "~/lib/result"
@@ -21,6 +22,8 @@ import { sellTypeSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
+
+import { toast } from "~/hooks/use-toast"
 
 import { Input } from "~/components/ui/input"
 import { Textarea } from "~/components/ui/textarea"
@@ -118,6 +121,19 @@ export default function Venda() {
   if (response && !response.ok) {
     errors = response.error
   }
+
+  useEffect(() => {
+    if (!response) return
+    if (response.ok) {
+      toast({ title: "Venda registrada com sucesso!" })
+    } else if (response.error.find((e) => e.type === "backend")) {
+      toast({
+        title: "Erro desconhecido",
+        description: "Não foi possível registrar a venda :(",
+        variant: "destructive",
+      })
+    }
+  }, [response])
 
   return (
     <ErrorProvider initialErrors={errors}>
