@@ -10,6 +10,7 @@ import { z } from "zod"
 import { userRoleSchmea } from "~/db/schema"
 
 import AuthService from "~/services/AuthService"
+import SaleAreaService from "~/services/SaleAreaService"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { typedError, typedOk } from "~/lib/result"
@@ -35,9 +36,9 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input"
+import { Checkbox } from "~/components/ui/checkbox"
 
 import FormGroup from "~/components/FormGroup"
-import { Checkbox } from "~/components/ui/checkbox"
 
 const formSchema = z.object({
   name: z.string({ required_error: "Insira o nome do usuário" }),
@@ -85,12 +86,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getAdminOrRedirect(request)
 
   const users = await AuthService.index()
+  const sellTypes = await SaleAreaService.index()
 
-  return json(users)
+  return json({ users, sellTypes })
 }
 
 export default function Admin() {
-  const users = useLoaderData<typeof loader>()
+  const { users, sellTypes } = useLoaderData<typeof loader>()
 
   const response = useActionData<typeof action>()
 
@@ -188,6 +190,86 @@ export default function Admin() {
                 </TableCell>
                 <TableCell>{u.name}</TableCell>
                 <TableCell>{u.totalSales}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </section>
+
+      <section className={maxWidth("mt-8")}>
+        <header className="mb-4 flex items-center justify-between gap-2">
+          <h2 className="font-medium text-2xl">Categorias e metas</h2>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button icon="left" className="text-sm">
+                <Plus /> Novo
+              </Button>
+            </DialogTrigger>
+            {/*<DialogContent>
+              <DialogTitle>Novo usuário</DialogTitle>
+
+              <ErrorProvider initialErrors={errors}>
+                <Form method="post" className="flex flex-col gap-4">
+                  <FormGroup name="name" label="Nome">
+                    {(removeError) => (
+                      <Input
+                        onInput={removeError}
+                        name="name"
+                        placeholder="Nome do usuário..."
+                      />
+                    )}
+                  </FormGroup>
+                  <FormGroup name="password" label="Senha">
+                    {(removeError) => (
+                      <Input
+                        onInput={removeError}
+                        name="password"
+                        placeholder="Senha..."
+                        type="password"
+                      />
+                    )}
+                  </FormGroup>
+                  <FormGroup
+                    className="flex items-center gap-4"
+                    name="role"
+                    label="É administrador?"
+                  >
+                    {(removeError) => (
+                      <Checkbox id="role" name="role" onInput={removeError} />
+                    )}
+                  </FormGroup>
+
+                  <DialogFooter className="mt-4">
+                    <DialogClose asChild>
+                      <Button type="button" variant="ghost">
+                        Cancelar
+                      </Button>
+                    </DialogClose>
+                    <Button type="submit">Criar</Button>
+                  </DialogFooter>
+                </Form>
+              </ErrorProvider>
+            </DialogContent>*/}
+          </Dialog>
+        </header>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-0">Id</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Meta de vendas</TableHead>
+              <TableHead>Prêmio</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sellTypes.map((s) => (
+              <TableRow key={s.id}>
+                <TableCell className="text-sm text-zinc-600">{s.id}</TableCell>
+                <TableCell>{s.name}</TableCell>
+                <TableCell>{s.goal}</TableCell>
+                <TableCell>{s.prize}</TableCell>
               </TableRow>
             ))}
           </TableBody>
