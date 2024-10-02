@@ -1,5 +1,5 @@
 import { Form, useActionData, useLoaderData } from "@remix-run/react"
-import { Plus } from "lucide-react"
+import { Edit, EditIcon, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import { useEffect } from "react"
 
 import { toast } from "~/hooks/use-toast"
@@ -26,6 +26,12 @@ import {
   TableBody,
   TableCell,
 } from "~/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { Checkbox } from "~/components/ui/checkbox"
@@ -72,7 +78,26 @@ export function UsersSection() {
                   {u.role === "ADMIN" ? "Administrador" : "Vendedor"}
                 </span>
               </TableCell>
-              <TableCell>{u.name}</TableCell>
+              <TableCell className="flex items-center justify-between">
+                {u.name}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant={"ghost"} className="p-1">
+                      <EllipsisVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      <Edit className="size-5" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem variant="danger">
+                      <Trash2 className="size-5" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
               <TableCell>{u.totalSales}</TableCell>
             </TableRow>
           ))}
