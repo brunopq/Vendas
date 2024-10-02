@@ -93,6 +93,7 @@ function NewUserModal() {
 
       <ErrorProvider initialErrors={errors}>
         <Form method="post" className="flex flex-col gap-4">
+          <input type="hidden" name="actionType" value="user" />
           <FormGroup name="name" label="Nome">
             {(removeError) => (
               <Input

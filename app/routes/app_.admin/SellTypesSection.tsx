@@ -90,6 +90,7 @@ function NewSellTypeModal() {
 
       <ErrorProvider initialErrors={errors}>
         <Form method="post" className="flex flex-col gap-4">
+          <input type="hidden" name="actionType" value="sellType" />
           <FormGroup name="category" label="Nome da categoria">
             {(removeError) => (
               <Input
@@ -104,8 +105,11 @@ function NewSellTypeModal() {
               <Input
                 onInput={(e) => {
                   removeError()
-                  setGoal(e.currentTarget.valueAsNumber)
+                  if (!Number.isNaN(e.currentTarget.valueAsNumber)) {
+                    setGoal(e.currentTarget.valueAsNumber)
+                  }
                 }}
+                value={goal}
                 name="goal"
                 placeholder="Meta..."
                 type="number"
