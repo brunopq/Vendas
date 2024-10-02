@@ -36,7 +36,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog"
-import { Input } from "~/components/ui/input"
+import { BrlInput, Input } from "~/components/ui/input"
 import { Checkbox } from "~/components/ui/checkbox"
 
 import FormGroup from "~/components/FormGroup"
@@ -101,6 +101,9 @@ export default function Admin() {
   if (response && !response.ok) {
     errors = response.error
   }
+
+  const goal = 100
+  const prize = 200
 
   return (
     <>
@@ -207,39 +210,60 @@ export default function Admin() {
                 <Plus /> Novo
               </Button>
             </DialogTrigger>
-            {/*<DialogContent>
-              <DialogTitle>Novo usuário</DialogTitle>
+            <DialogContent>
+              <DialogTitle>Nova categoria</DialogTitle>
 
               <ErrorProvider initialErrors={errors}>
                 <Form method="post" className="flex flex-col gap-4">
-                  <FormGroup name="name" label="Nome">
+                  <FormGroup name="category" label="Nome da categoria">
                     {(removeError) => (
                       <Input
                         onInput={removeError}
-                        name="name"
-                        placeholder="Nome do usuário..."
+                        name="category"
+                        placeholder="Categoria..."
                       />
                     )}
                   </FormGroup>
-                  <FormGroup name="password" label="Senha">
+                  <FormGroup name="goal" label="Meta principal">
                     {(removeError) => (
                       <Input
                         onInput={removeError}
-                        name="password"
-                        placeholder="Senha..."
-                        type="password"
+                        name="goal"
+                        placeholder="Meta..."
+                        type="number"
+                        min={0}
                       />
                     )}
                   </FormGroup>
-                  <FormGroup
-                    className="flex items-center gap-4"
-                    name="role"
-                    label="É administrador?"
-                  >
+                  <FormGroup name="prize" label="Comissão">
                     {(removeError) => (
-                      <Checkbox id="role" name="role" onInput={removeError} />
+                      <BrlInput onInput={removeError} name="prize" />
                     )}
                   </FormGroup>
+
+                  <div className="grid grid-cols-3 text-sm">
+                    <strong className="col-span-3 text-base">Metas: </strong>
+
+                    <span className="text-zinc-600">Meta</span>
+                    <span className="text-zinc-600">N. de vendas</span>
+                    <span className="text-zinc-600">Comissão</span>
+
+                    <span>50%</span>
+                    <span>{Math.round(goal * 0.5)}</span>
+                    <span>{brl(prize * 0.5)}</span>
+
+                    <span>75%</span>
+                    <span>{Math.round(goal * 0.75)}</span>
+                    <span>{brl(prize * 0.75)}</span>
+
+                    <span>100%</span>
+                    <span>{Math.round(goal * 1)}</span>
+                    <span>{brl(prize * 1)}</span>
+
+                    <span>110%</span>
+                    <span>{Math.round(goal * 1.1)}</span>
+                    <span>{brl(prize * 1.1)}</span>
+                  </div>
 
                   <DialogFooter className="mt-4">
                     <DialogClose asChild>
@@ -251,7 +275,7 @@ export default function Admin() {
                   </DialogFooter>
                 </Form>
               </ErrorProvider>
-            </DialogContent>*/}
+            </DialogContent>
           </Dialog>
         </header>
 
