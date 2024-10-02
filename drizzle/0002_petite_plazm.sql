@@ -1,0 +1,1 @@
+ALTER TABLE "areas" ADD CONSTRAINT "areas_name_unique" UNIQUE("name");

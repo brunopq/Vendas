@@ -36,7 +36,7 @@ export const userRelations = relations(user, ({ many }) => ({
 
 export const area = pgTable("areas", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
-  name: text("name").notNull(),
+  name: text("name").notNull().unique(),
   goal: integer("goal").notNull(),
   prize: numeric("prize", { precision: 16, scale: 2 }).notNull(),
 })
@@ -82,6 +82,9 @@ export const userRoleSchmea = (params?: z.RawCreateParams) =>
 export const userSchema = createSelectSchema(user)
 export const newUserSchema = createInsertSchema(user)
 
+export const areaSchema = createSelectSchema(area)
+export const newAreaSchema = createInsertSchema(area)
+
 export const saleSchema = createSelectSchema(sale)
 export const newSaleSchema = createInsertSchema(sale)
 
@@ -90,3 +93,6 @@ export type NewUser = z.infer<typeof newUserSchema>
 
 export type Sale = z.infer<typeof saleSchema>
 export type NewSale = z.infer<typeof newSaleSchema>
+
+export type Area = z.infer<typeof areaSchema>
+export type NewArea = z.infer<typeof newAreaSchema>

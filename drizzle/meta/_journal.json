@@ -15,6 +15,13 @@
       "when": 1727803145401,
       "tag": "0001_closed_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1727878404181,
+      "tag": "0002_petite_plazm",
+      "breakpoints": true
     }
   ]
 }
