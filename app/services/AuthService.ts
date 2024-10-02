@@ -76,6 +76,10 @@ class AuthService {
       role: createdUser.role,
     }
   }
+
+  async delete(id: string) {
+    await db.delete(user).where(eq(user.id, id))
+  }
 }
 
 export default new AuthService()

@@ -1,5 +1,10 @@
-import { Form, useActionData, useLoaderData } from "@remix-run/react"
-import { Edit, EditIcon, EllipsisVertical, Plus, Trash2 } from "lucide-react"
+import {
+  Form,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+} from "@remix-run/react"
+import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import { useEffect } from "react"
 
 import { toast } from "~/hooks/use-toast"
@@ -80,23 +85,7 @@ export function UsersSection() {
               </TableCell>
               <TableCell className="flex items-center justify-between">
                 {u.name}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant={"ghost"} className="p-1">
-                      <EllipsisVertical className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem>
-                      <Edit className="size-5" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem variant="danger">
-                      <Trash2 className="size-5" />
-                      Excluir
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <UserDropdown id={u.id} />
               </TableCell>
               <TableCell>{u.totalSales}</TableCell>
             </TableRow>
@@ -104,6 +93,33 @@ export function UsersSection() {
         </TableBody>
       </Table>
     </section>
+  )
+}
+
+function UserDropdown({ id }: { id: string }) {
+  const fetcher = useFetcher({})
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant={"ghost"} className="p-1">
+          <EllipsisVertical className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <Edit className="size-5" />
+          Editar
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => fetcher.submit({ id: id }, { method: "delete" })}
+          variant="danger"
+        >
+          <Trash2 className="size-5" />
+          Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

@@ -59,6 +59,18 @@ async function handleNewSellType(data: Record<string, unknown>) {
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  if (request.method === "DELETE") {
+    const form = await request.formData()
+    const id = form.get("id")
+
+    if (!id) {
+      return typedOk({})
+    }
+
+    await AuthService.delete(String(id))
+
+    return typedOk({})
+  }
   try {
     await getAdminOrRedirect(request)
 
