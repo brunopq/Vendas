@@ -1,6 +1,8 @@
 import { Form, useActionData, useLoaderData } from "@remix-run/react"
 import { Plus } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+import { toast } from "~/hooks/use-toast"
 
 import { brl, currencyToNumber } from "~/lib/formatters"
 import { maxWidth } from "~/lib/utils"
@@ -45,7 +47,9 @@ export function SellTypesSection() {
             </Button>
           </DialogTrigger>
 
-          <NewSellTypeModal />
+          <DialogContent>
+            <NewSellTypeModal />
+          </DialogContent>
         </Dialog>
       </header>
 
@@ -84,8 +88,21 @@ function NewSellTypeModal() {
   const [goal, setGoal] = useState<number>(0)
   const [prize, setPrize] = useState<number>(0)
 
+  useEffect(() => {
+    if (!response) return
+    if (response.ok) {
+      toast({ title: "Categoria registrada com sucesso!" })
+    } else if (response.error.find((e) => e.type === "backend")) {
+      toast({
+        title: "Erro desconhecido",
+        description: "Não foi possível registrar nova categoria :(",
+        variant: "destructive",
+      })
+    }
+  }, [response])
+
   return (
-    <DialogContent>
+    <>
       <DialogTitle>Nova categoria</DialogTitle>
 
       <ErrorProvider initialErrors={errors}>
@@ -163,6 +180,6 @@ function NewSellTypeModal() {
           </DialogFooter>
         </Form>
       </ErrorProvider>
-    </DialogContent>
+    </>
   )
 }

@@ -1,5 +1,8 @@
 import { Form, useActionData, useLoaderData } from "@remix-run/react"
 import { Plus } from "lucide-react"
+import { useEffect } from "react"
+
+import { toast } from "~/hooks/use-toast"
 
 import { cn, maxWidth } from "~/lib/utils"
 
@@ -86,6 +89,19 @@ function NewUserModal() {
   if (response && !response.ok) {
     errors = response.error
   }
+
+  useEffect(() => {
+    if (!response) return
+    if (response.ok) {
+      toast({ title: "Usuário criado com sucesso!" })
+    } else if (response.error.find((e) => e.type === "backend")) {
+      toast({
+        title: "Erro desconhecido",
+        description: "Não foi possível criar o usuário :(",
+        variant: "destructive",
+      })
+    }
+  }, [response])
 
   return (
     <DialogContent>
