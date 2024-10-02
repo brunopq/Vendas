@@ -15,6 +15,7 @@ import SaleAreaService from "~/services/SaleAreaService"
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { typedError, typedOk } from "~/lib/result"
 import { cn, maxWidth } from "~/lib/utils"
+import { brl } from "~/lib/formatters"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
@@ -269,7 +270,7 @@ export default function Admin() {
                 <TableCell className="text-sm text-zinc-600">{s.id}</TableCell>
                 <TableCell>{s.name}</TableCell>
                 <TableCell>{s.goal}</TableCell>
-                <TableCell>{s.prize}</TableCell>
+                <TableCell>{brl(s.prize)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

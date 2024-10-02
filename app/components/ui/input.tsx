@@ -1,11 +1,11 @@
-import * as React from "react"
+import { forwardRef, type InputHTMLAttributes, useState } from "react"
 
+import { brl, currencyToNumber } from "~/lib/formatters"
 import { cn } from "~/lib/utils"
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
+const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     return (
       <input
@@ -23,3 +23,20 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input"
 
 export { Input }
+
+export type BrlInputProps = Omit<
+  InputProps,
+  "onChange" | "value" | "placeholder"
+>
+export function BrlInput(props: BrlInputProps) {
+  const [state, setState] = useState<string>()
+
+  return (
+    <Input
+      value={state}
+      onChange={(e) => setState(brl(currencyToNumber(e.target.value)))}
+      placeholder="R$ 0,00"
+      {...props}
+    />
+  )
+}

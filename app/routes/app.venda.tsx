@@ -14,18 +14,19 @@ import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
 import { z } from "zod"
 
-import { type Result, typedOk, typedError } from "~/lib/result"
-
-import { getUserOrRedirect } from "~/lib/authGuard"
-
 import { sellTypeSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
+import SaleAreaService from "~/services/SaleAreaService"
+
+import { type Result, typedOk, typedError } from "~/lib/result"
+import { currencyToNumeric } from "~/lib/formatters"
+import { getUserOrRedirect } from "~/lib/authGuard"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
 import { toast } from "~/hooks/use-toast"
 
-import { Input } from "~/components/ui/input"
+import { Input, BrlInput } from "~/components/ui/input"
 import { Textarea } from "~/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group"
 import {
@@ -37,9 +38,7 @@ import {
 } from "~/components/ui/select"
 import { Checkbox } from "~/components/ui/checkbox"
 import { Button } from "~/components/ui/button"
-
 import FormGroup from "~/components/FormGroup"
-import SaleAreaService from "~/services/SaleAreaService"
 
 const formSchema = z.object({
   date: z
@@ -96,6 +95,10 @@ export const action = async ({
     } else {
       data.isRepurchase = false
     }
+
+    data.estimatedValue = currencyToNumeric(
+      typeof data.estimatedValue === "string" ? data.estimatedValue : "",
+    )
 
     const parsed = formSchema.safeParse(data)
     if (!parsed.success) {
@@ -234,11 +237,11 @@ export default function Venda() {
 
         <FormGroup name="estimatedValue" label="Valor estimado">
           {(removeErrors) => (
-            <Input
+            <BrlInput
               onInput={removeErrors}
               name="estimatedValue"
               id="estimatedValue"
-              placeholder="R$ 1.000,00"
+              // placeholder="R$ 1.000,00"
             />
           )}
         </FormGroup>

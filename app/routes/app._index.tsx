@@ -3,6 +3,7 @@ import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { z } from "zod"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
+import { brl } from "~/lib/formatters"
 
 import SalesService from "~/services/SalesService"
 
@@ -200,7 +201,7 @@ export default function App() {
                 <TableCell>{d.seller.name}</TableCell>
                 <TableCell>{d.area.name}</TableCell>
                 <TableCell>{d.adverseParty}</TableCell>
-                <TableCell>{d.estimatedValue}</TableCell>
+                <TableCell>{brl(d.estimatedValue)}</TableCell>
                 <TableCell>{d.isRepurchase ? "Sim" : "Não"}</TableCell>
                 <TableCell>{d.client}</TableCell>
                 <TableCell>{d.sellType}</TableCell>
