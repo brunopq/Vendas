@@ -1,5 +1,10 @@
-import { Form, useActionData, useLoaderData } from "@remix-run/react"
-import { Plus } from "lucide-react"
+import {
+  Form,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+} from "@remix-run/react"
+import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { toast } from "~/hooks/use-toast"
@@ -27,6 +32,12 @@ import {
   TableBody,
   TableCell,
 } from "~/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu"
 import { Button } from "~/components/ui/button"
 import { BrlInput, Input } from "~/components/ui/input"
 
@@ -60,6 +71,7 @@ export function SellTypesSection() {
             <TableHead>Nome</TableHead>
             <TableHead>Meta de vendas</TableHead>
             <TableHead>Comissão</TableHead>
+            <TableHead className="w-0">{/*dropdown*/}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -69,11 +81,43 @@ export function SellTypesSection() {
               <TableCell>{s.name}</TableCell>
               <TableCell>{s.goal}</TableCell>
               <TableCell>{brl(s.prize)}</TableCell>
+              <TableCell className="w-0">
+                <SellTypeDropdown id={s.id} />
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </section>
+  )
+}
+
+function SellTypeDropdown({ id }: { id: string }) {
+  const fetcher = useFetcher({})
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="p-1">
+          <EllipsisVertical className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <Edit className="size-5" />
+          Editar
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() =>
+            fetcher.submit({ type: "area", id: id }, { method: "delete" })
+          }
+          variant="danger"
+        >
+          <Trash2 className="size-5" />
+          Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

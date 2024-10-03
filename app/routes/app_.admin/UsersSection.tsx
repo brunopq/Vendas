@@ -68,6 +68,7 @@ export function UsersSection() {
             <TableHead className="w-0">Tipo</TableHead>
             <TableHead>Nome</TableHead>
             <TableHead>Vendas</TableHead>
+            <TableHead />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -85,9 +86,11 @@ export function UsersSection() {
               </TableCell>
               <TableCell className="flex items-center justify-between">
                 {u.name}
-                <UserDropdown id={u.id} />
               </TableCell>
               <TableCell>{u.totalSales}</TableCell>
+              <TableCell className="w-0">
+                <UserDropdown id={u.id} />
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -112,7 +115,9 @@ function UserDropdown({ id }: { id: string }) {
           Editar
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => fetcher.submit({ id: id }, { method: "delete" })}
+          onClick={() =>
+            fetcher.submit({ type: "user", id: id }, { method: "delete" })
+          }
           variant="danger"
         >
           <Trash2 className="size-5" />
