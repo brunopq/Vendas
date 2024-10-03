@@ -107,8 +107,8 @@ export default function App() {
             />
           </div>
 
-          <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-orange-300 bg-orange-100 p-6 shadow-sm">
-            <h3 className="text-lg">Comissões</h3>
+          <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-teal-300 bg-teal-100 p-6 shadow-sm">
+            <h3 className="col-span-2 text-lg">Comissões</h3>
 
             <div className="col-span-2 row-start-2">
               <HorizontalBarChart
@@ -118,11 +118,16 @@ export default function App() {
                 name={(c) => c.area.name}
                 value={(c) => c.sellCount / c.area.goal}
                 markers={[0.5, 0.75, 1, 1.1]}
-                colorStops={[
-                  "var(--color-orange-300)",
-                  "var(--color-orange-700)",
-                ]}
+                colorStops={["var(--color-teal-300)", "var(--color-teal-600)"]}
               />
+            </div>
+
+            <div className="col-span-2 row-span-2 grid grid-rows-subgrid text-center">
+              <h3>Total</h3>
+
+              <strong className="self-center text-xl">
+                {brl(data.commissions.reduce((acc, c) => acc + c.comission, 0))}
+              </strong>
             </div>
           </div>
 

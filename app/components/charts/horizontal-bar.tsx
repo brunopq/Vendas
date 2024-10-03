@@ -75,20 +75,6 @@ export function HorizontalBarChart<T extends { id: string }>({
     <svg viewBox={`0 0 ${w} ${h}`} className="overflow-visible">
       <title>hello</title>
 
-      {marks.map((m) => (
-        <line
-          key={m.label}
-          x1={m.x}
-          x2={m.x}
-          y1={0}
-          y2={h}
-          stroke="#000000"
-          strokeOpacity={0.4}
-          strokeWidth=".5"
-          strokeDasharray="1 1.5"
-        />
-      ))}
-
       {bars.map((b) => (
         <g fill={`color-mix(in srgb, ${b.c} 30%, black)`} key={b.id}>
           <rect
@@ -122,6 +108,24 @@ export function HorizontalBarChart<T extends { id: string }>({
             fontSize="50%"
             fontWeight={600}
           >{b.value}</text> */}
+        </g>
+      ))}
+
+      {marks.map((m) => (
+        <g key={m.label}>
+          <line
+            x1={m.x}
+            x2={m.x}
+            y1={0}
+            y2={h}
+            stroke="#000000"
+            strokeOpacity={0.2}
+            strokeWidth=".5"
+            strokeDasharray="1 1.5"
+          />
+          <text x={m.x} y={h} fontSize="20%">
+            {m.label}
+          </text>
         </g>
       ))}
     </svg>

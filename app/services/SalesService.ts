@@ -109,6 +109,9 @@ class SalesService {
         ),
       )
       .groupBy(area.id)
+      .orderBy(
+        sql`cast(count(${sale.id}) as double precision) / ${area.goal} desc`,
+      )
 
     for (const area of a) {
       const percentage = area.sellCount / area.area.goal
