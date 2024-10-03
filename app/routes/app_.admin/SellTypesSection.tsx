@@ -17,29 +17,13 @@ import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 import FormGroup from "~/components/FormGroup"
 
 import {
-  Dialog,
-  DialogTitle,
-  DialogTrigger,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-} from "~/components/ui/dialog"
-import {
-  Table,
-  TableHead,
-  TableRow,
-  TableHeader,
-  TableBody,
-  TableCell,
-} from "~/components/ui/table"
-import {
+  BrlInput,
+  Input,
+  Button,
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
-import { Button } from "~/components/ui/button"
-import { BrlInput, Input } from "~/components/ui/input"
+  Table,
+  Dialog,
+} from "~/components/ui"
 
 import type { action, loader } from "./route"
 
@@ -51,43 +35,43 @@ export function SellTypesSection() {
       <header className="mb-4 flex items-center justify-between gap-2">
         <h2 className="font-medium text-2xl">Categorias e metas</h2>
 
-        <Dialog>
-          <DialogTrigger asChild>
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
             <Button icon="left" className="text-sm">
               <Plus /> Novo
             </Button>
-          </DialogTrigger>
+          </Dialog.Trigger>
 
-          <DialogContent>
+          <Dialog.Content>
             <NewSellTypeModal />
-          </DialogContent>
-        </Dialog>
+          </Dialog.Content>
+        </Dialog.Root>
       </header>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-0">Id</TableHead>
-            <TableHead>Nome</TableHead>
-            <TableHead>Meta de vendas</TableHead>
-            <TableHead>Comissão</TableHead>
-            <TableHead className="w-0">{/*dropdown*/}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      <Table.Root>
+        <Table.Header>
+          <Table.Row>
+            <Table.Head className="w-0">Id</Table.Head>
+            <Table.Head>Nome</Table.Head>
+            <Table.Head>Meta de vendas</Table.Head>
+            <Table.Head>Comissão</Table.Head>
+            <Table.Head className="w-0">{/*dropdown*/}</Table.Head>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
           {sellTypes.map((s) => (
-            <TableRow key={s.id}>
-              <TableCell className="text-sm text-zinc-600">{s.id}</TableCell>
-              <TableCell>{s.name}</TableCell>
-              <TableCell>{s.goal}</TableCell>
-              <TableCell>{brl(s.prize)}</TableCell>
-              <TableCell className="w-0">
+            <Table.Row key={s.id}>
+              <Table.Cell className="text-sm text-zinc-600">{s.id}</Table.Cell>
+              <Table.Cell>{s.name}</Table.Cell>
+              <Table.Cell>{s.goal}</Table.Cell>
+              <Table.Cell>{brl(s.prize)}</Table.Cell>
+              <Table.Cell className="w-0">
                 <SellTypeDropdown id={s.id} />
-              </TableCell>
-            </TableRow>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </TableBody>
-      </Table>
+        </Table.Body>
+      </Table.Root>
     </section>
   )
 }
@@ -96,18 +80,18 @@ function SellTypeDropdown({ id }: { id: string }) {
   const fetcher = useFetcher({})
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
         <Button variant="ghost" className="p-1">
           <EllipsisVertical className="size-4" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Item>
           <Edit className="size-5" />
           Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem
+        </DropdownMenu.Item>
+        <DropdownMenu.Item
           onClick={() =>
             fetcher.submit({ type: "area", id: id }, { method: "delete" })
           }
@@ -115,9 +99,9 @@ function SellTypeDropdown({ id }: { id: string }) {
         >
           <Trash2 className="size-5" />
           Excluir
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
   )
 }
 
@@ -147,7 +131,7 @@ function NewSellTypeModal() {
 
   return (
     <>
-      <DialogTitle>Nova categoria</DialogTitle>
+      <Dialog.Title>Nova categoria</Dialog.Title>
 
       <ErrorProvider initialErrors={errors}>
         <Form method="post" className="flex flex-col gap-4">
@@ -214,14 +198,14 @@ function NewSellTypeModal() {
             <span>{brl(prize * 1.1)}</span>
           </div>
 
-          <DialogFooter className="mt-4">
-            <DialogClose asChild>
+          <Dialog.Footer className="mt-4">
+            <Dialog.Close asChild>
               <Button type="button" variant="ghost">
                 Cancelar
               </Button>
-            </DialogClose>
+            </Dialog.Close>
             <Button type="submit">Criar</Button>
-          </DialogFooter>
+          </Dialog.Footer>
         </Form>
       </ErrorProvider>
     </>

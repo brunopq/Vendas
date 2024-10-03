@@ -4,7 +4,7 @@ import { Link, Outlet, useLoaderData } from "@remix-run/react"
 import { maxWidth } from "~/lib/utils"
 import { getUserOrRedirect } from "~/lib/authGuard"
 
-import { Button } from "~/components/ui/button"
+import { Button } from "~/components/ui"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json(await getUserOrRedirect(request, "/login"))

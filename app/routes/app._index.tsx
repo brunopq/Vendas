@@ -7,25 +7,10 @@ import { brl } from "~/lib/formatters"
 
 import SalesService from "~/services/SalesService"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table"
-import { Button } from "~/components/ui/button"
+import { Button, Table, Select } from "~/components/ui"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -180,35 +165,35 @@ export default function App() {
           </Button>
         </header>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Vendedor</TableHead>
-              <TableHead>Área</TableHead>
-              <TableHead>Parte adversária</TableHead>
-              <TableHead>Valor estimado</TableHead>
-              <TableHead>Recompra</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Tipo</TableHead>
-            </TableRow>
-          </TableHeader>
+        <Table.Root>
+          <Table.Header>
+            <Table.Row>
+              <Table.Head>Data</Table.Head>
+              <Table.Head>Vendedor</Table.Head>
+              <Table.Head>Área</Table.Head>
+              <Table.Head>Parte adversária</Table.Head>
+              <Table.Head>Valor estimado</Table.Head>
+              <Table.Head>Recompra</Table.Head>
+              <Table.Head>Cliente</Table.Head>
+              <Table.Head>Tipo</Table.Head>
+            </Table.Row>
+          </Table.Header>
 
-          <TableBody>
+          <Table.Body>
             {data.total.map((d) => (
-              <TableRow key={d.id}>
-                <TableCell>{d.date}</TableCell>
-                <TableCell>{d.seller.name}</TableCell>
-                <TableCell>{d.area.name}</TableCell>
-                <TableCell>{d.adverseParty}</TableCell>
-                <TableCell>{brl(d.estimatedValue)}</TableCell>
-                <TableCell>{d.isRepurchase ? "Sim" : "Não"}</TableCell>
-                <TableCell>{d.client}</TableCell>
-                <TableCell>{d.sellType}</TableCell>
-              </TableRow>
+              <Table.Row key={d.id}>
+                <Table.Cell>{d.date}</Table.Cell>
+                <Table.Cell>{d.seller.name}</Table.Cell>
+                <Table.Cell>{d.area.name}</Table.Cell>
+                <Table.Cell>{d.adverseParty}</Table.Cell>
+                <Table.Cell>{brl(d.estimatedValue)}</Table.Cell>
+                <Table.Cell>{d.isRepurchase ? "Sim" : "Não"}</Table.Cell>
+                <Table.Cell>{d.client}</Table.Cell>
+                <Table.Cell>{d.sellType}</Table.Cell>
+              </Table.Row>
             ))}
-          </TableBody>
-        </Table>
+          </Table.Body>
+        </Table.Root>
       </div>
 
       <footer className="mt-16 py-16" />
@@ -222,15 +207,15 @@ function DateSelection() {
 
   return (
     <Form className="flex gap-1">
-      <Select
+      <Select.Root
         onValueChange={(v) => setSearchParams({ mes: v })}
         name="mes"
         defaultValue={`${month}`}
       >
-        <SelectTrigger showIcon={false} className="w-fit py-1.5 text-sm">
-          <SelectValue placeholder="Trocar mês" />
-        </SelectTrigger>
-        <SelectContent className="max-h-64">
+        <Select.Trigger showIcon={false} className="w-fit py-1.5 text-sm">
+          <Select.Value placeholder="Trocar mês" />
+        </Select.Trigger>
+        <Select.Content className="max-h-64">
           {[
             "Janeiro",
             "Fevereiro",
@@ -245,29 +230,29 @@ function DateSelection() {
             "Novembro",
             "Dezembro",
           ].map((m, i) => (
-            <SelectItem key={m} value={`${i + 1}`}>
+            <Select.Item key={m} value={`${i + 1}`}>
               {m}
-            </SelectItem>
+            </Select.Item>
           ))}
-        </SelectContent>
-      </Select>
+        </Select.Content>
+      </Select.Root>
 
-      <Select
+      <Select.Root
         onValueChange={(v) => setSearchParams({ ano: v })}
         name="ano"
         defaultValue={`${year}`}
       >
-        <SelectTrigger showIcon={false} className="w-fit py-1.5 text-sm">
-          <SelectValue placeholder="Trocar ano" />
-        </SelectTrigger>
-        <SelectContent className="max-h-64">
+        <Select.Trigger showIcon={false} className="w-fit py-1.5 text-sm">
+          <Select.Value placeholder="Trocar ano" />
+        </Select.Trigger>
+        <Select.Content className="max-h-64">
           {[2023, 2024, 2025].map((a) => (
-            <SelectItem key={a} value={`${a}`}>
+            <Select.Item key={a} value={`${a}`}>
               {a}
-            </SelectItem>
+            </Select.Item>
           ))}
-        </SelectContent>
-      </Select>
+        </Select.Content>
+      </Select.Root>
     </Form>
   )
 }

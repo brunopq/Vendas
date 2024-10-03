@@ -12,8 +12,7 @@ import { commitSession, getSession, getUser } from "~/session"
 
 import AuthService from "~/services/AuthService"
 
-import { Button } from "~/components/ui/button"
-import { Input } from "~/components/ui/input"
+import { Button, Input } from "~/components/ui"
 
 const formValidator = z.object({
   name: z.string().min(1),

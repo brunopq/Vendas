@@ -16,30 +16,13 @@ import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 import FormGroup from "~/components/FormGroup"
 
 import {
-  Dialog,
-  DialogTitle,
-  DialogTrigger,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-} from "~/components/ui/dialog"
-import {
-  Table,
-  TableHead,
-  TableRow,
-  TableHeader,
-  TableBody,
-  TableCell,
-} from "~/components/ui/table"
-import {
+  Input,
+  Button,
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
-import { Button } from "~/components/ui/button"
-import { Input } from "~/components/ui/input"
-import { Checkbox } from "~/components/ui/checkbox"
+  Table,
+  Dialog,
+  Checkbox,
+} from "~/components/ui"
 
 import type { action, loader } from "./route"
 
@@ -51,31 +34,31 @@ export function UsersSection() {
       <header className="mb-4 flex items-center justify-between gap-2">
         <h2 className="font-medium text-2xl">Usuários</h2>
 
-        <Dialog>
-          <DialogTrigger asChild>
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
             <Button icon="left" className="text-sm">
               <Plus /> Novo
             </Button>
-          </DialogTrigger>
+          </Dialog.Trigger>
           <NewUserModal />
-        </Dialog>
+        </Dialog.Root>
       </header>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-0">Id</TableHead>
-            <TableHead className="w-0">Tipo</TableHead>
-            <TableHead>Nome</TableHead>
-            <TableHead>Vendas</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      <Table.Root>
+        <Table.Header>
+          <Table.Row>
+            <Table.Head className="w-0">Id</Table.Head>
+            <Table.Head className="w-0">Tipo</Table.Head>
+            <Table.Head>Nome</Table.Head>
+            <Table.Head>Vendas</Table.Head>
+            <Table.Head />
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
           {users.map((u) => (
-            <TableRow key={u.id}>
-              <TableCell className="text-sm text-zinc-600">{u.id}</TableCell>
-              <TableCell>
+            <Table.Row key={u.id}>
+              <Table.Cell className="text-sm text-zinc-600">{u.id}</Table.Cell>
+              <Table.Cell>
                 <span
                   className={cn("rounded-full px-3 py-1 text-sm", {
                     "bg-primary-100 text-primary-800": u.role === "ADMIN",
@@ -83,18 +66,18 @@ export function UsersSection() {
                 >
                   {u.role === "ADMIN" ? "Administrador" : "Vendedor"}
                 </span>
-              </TableCell>
-              <TableCell className="flex items-center justify-between">
+              </Table.Cell>
+              <Table.Cell className="flex items-center justify-between">
                 {u.name}
-              </TableCell>
-              <TableCell>{u.totalSales}</TableCell>
-              <TableCell className="w-0">
+              </Table.Cell>
+              <Table.Cell>{u.totalSales}</Table.Cell>
+              <Table.Cell className="w-0">
                 <UserDropdown id={u.id} />
-              </TableCell>
-            </TableRow>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </TableBody>
-      </Table>
+        </Table.Body>
+      </Table.Root>
     </section>
   )
 }
@@ -103,18 +86,18 @@ function UserDropdown({ id }: { id: string }) {
   const fetcher = useFetcher({})
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
         <Button variant={"ghost"} className="p-1">
           <EllipsisVertical className="size-4" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Item>
           <Edit className="size-5" />
           Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem
+        </DropdownMenu.Item>
+        <DropdownMenu.Item
           onClick={() =>
             fetcher.submit({ type: "user", id: id }, { method: "delete" })
           }
@@ -122,9 +105,9 @@ function UserDropdown({ id }: { id: string }) {
         >
           <Trash2 className="size-5" />
           Excluir
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
   )
 }
 
@@ -150,8 +133,8 @@ function NewUserModal() {
   }, [response])
 
   return (
-    <DialogContent>
-      <DialogTitle>Novo usuário</DialogTitle>
+    <Dialog.Content>
+      <Dialog.Title>Novo usuário</Dialog.Title>
 
       <ErrorProvider initialErrors={errors}>
         <Form method="post" className="flex flex-col gap-4">
@@ -185,16 +168,16 @@ function NewUserModal() {
             )}
           </FormGroup>
 
-          <DialogFooter className="mt-4">
-            <DialogClose asChild>
+          <Dialog.Footer className="mt-4">
+            <Dialog.Close asChild>
               <Button type="button" variant="ghost">
                 Cancelar
               </Button>
-            </DialogClose>
+            </Dialog.Close>
             <Button type="submit">Criar</Button>
-          </DialogFooter>
+          </Dialog.Footer>
         </Form>
       </ErrorProvider>
-    </DialogContent>
+    </Dialog.Content>
   )
 }

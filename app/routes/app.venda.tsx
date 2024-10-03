@@ -26,18 +26,16 @@ import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
 import { toast } from "~/hooks/use-toast"
 
-import { Input, BrlInput } from "~/components/ui/input"
-import { Textarea } from "~/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group"
 import {
+  Button,
+  Checkbox,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select"
-import { Checkbox } from "~/components/ui/checkbox"
-import { Button } from "~/components/ui/button"
+  Input,
+  BrlInput,
+  Textarea,
+  RadioGroup,
+} from "~/components/ui"
+
 import FormGroup from "~/components/FormGroup"
 
 const formSchema = z.object({
@@ -162,20 +160,20 @@ export default function Venda() {
             label="Tipo de captação"
           >
             {(removeErrors) => (
-              <RadioGroup
+              <RadioGroup.Root
                 onChange={removeErrors}
                 name="sellType"
                 className="flex flex-1 gap-4"
               >
                 {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                 <label className="flex items-center gap-2">
-                  <RadioGroupItem value="ATIVO" /> Ativa
+                  <RadioGroup.Item value="ATIVO" /> Ativa
                 </label>
                 {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
                 <label className="flex items-center gap-2">
-                  <RadioGroupItem value="PASSIVO" /> Passiva
+                  <RadioGroup.Item value="PASSIVO" /> Passiva
                 </label>
-              </RadioGroup>
+              </RadioGroup.Root>
             )}
           </FormGroup>
 
@@ -209,18 +207,18 @@ export default function Venda() {
 
         <FormGroup name="area" label="Área">
           {(removeErrors) => (
-            <Select onValueChange={removeErrors} name="area">
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione..." />
-              </SelectTrigger>
-              <SelectContent>
+            <Select.Root onValueChange={removeErrors} name="area">
+              <Select.Trigger>
+                <Select.Value placeholder="Selecione..." />
+              </Select.Trigger>
+              <Select.Content>
                 {areas.map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
+                  <Select.Item key={a.id} value={a.id}>
                     {a.name}
-                  </SelectItem>
+                  </Select.Item>
                 ))}
-              </SelectContent>
-            </Select>
+              </Select.Content>
+            </Select.Root>
           )}
         </FormGroup>
 
