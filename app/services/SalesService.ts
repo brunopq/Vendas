@@ -1,7 +1,8 @@
 import { endOfMonth, startOfMonth } from "date-fns"
+import { between, eq, sql } from "drizzle-orm"
 
 import { db } from "~/db"
-import { newSaleSchema, sale } from "~/db/schema"
+import { area, newSaleSchema, sale } from "~/db/schema"
 import type { Sale as DbSale, NewSale as DbNewSale } from "~/db/schema"
 
 export type DomainSale = DbSale
@@ -87,6 +88,46 @@ class SalesService {
         seller: { columns: { name: true } },
       },
     })
+  }
+
+  async getCommissionsByMonth(month: number, year: number) {
+    const date = this.validateDate(month, year)
+
+    const a = await db
+      .select({
+        area,
+        sellCount: sql<number>`cast(count(${sale.id}) as int)`,
+        comission: sql<number>`cast(0 as int)`,
+      })
+      .from(area)
+      .leftJoin(sale, eq(area.id, sale.area))
+      .where(
+        between(
+          sale.date,
+          startOfMonth(date).toDateString(),
+          endOfMonth(date).toDateString(),
+        ),
+      )
+      .groupBy(area.id)
+
+    for (const area of a) {
+      const percentage = area.sellCount / area.area.goal
+
+      if (percentage >= 0.5) {
+        area.comission = Number(area.area.prize) * 0.5
+      }
+      if (percentage >= 0.75) {
+        area.comission = Number(area.area.prize) * 0.75
+      }
+      if (percentage >= 1) {
+        area.comission = Number(area.area.prize) * 1
+      }
+      if (percentage >= 1.1) {
+        area.comission = Number(area.area.prize) * 1.1
+      }
+    }
+
+    return a
   }
 
   async create(newSale: NewSale) {

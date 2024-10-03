@@ -11,6 +11,7 @@ import { Button, Table, Select } from "~/components/ui"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
+import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -28,11 +29,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!year) {
     year = new Date().getFullYear()
   }
-  const [data, userData, newClients] = await Promise.all([
+  const [data, userData, newClients, something] = await Promise.all([
     SalesService.getByMonth(month, year),
     SalesService.getByMonthAndUser(month, year, user.id),
     SalesService.getNewClientsByMonth(month, year),
+    SalesService.getCommissionsByMonth(month, year),
   ])
+  console.log(something)
 
   const repurchase: { total: number; user: number } = { total: 0, user: 0 }
 
@@ -51,12 +54,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       user: userData,
       newClients,
       repurchase,
+      commissions: something,
     },
   })
 }
 
 export default function App() {
   const { data } = useLoaderData<typeof loader>()
+  console.log(data.commissions)
 
   const salesByArea = Object.entries(
     data.total.reduce(
@@ -88,6 +93,39 @@ export default function App() {
         </header>
 
         <div className="grid grid-cols-6 gap-4">
+          <div className="col-span-2 row-span-2 flex flex-col items-center justify-between gap-6 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
+            <h3>Áreas de venda</h3>
+
+            <PieChart
+              data={salesByArea}
+              name={(i) => i.area}
+              value={(i) => i.value}
+              colorStops={[
+                "var(--color-accent-300)",
+                "var(--color-accent-700)",
+              ]}
+            />
+          </div>
+
+          <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-orange-300 bg-orange-100 p-6 shadow-sm">
+            <h3 className="text-lg">Comissões</h3>
+
+            <div className="col-span-2 row-start-2">
+              <HorizontalBarChart
+                w={100}
+                h={50}
+                data={data.commissions.map((c) => ({ ...c, id: c.area.id }))}
+                name={(c) => c.area.name}
+                value={(c) => c.sellCount / c.area.goal}
+                markers={[0.5, 0.75, 1, 1.1]}
+                colorStops={[
+                  "var(--color-orange-300)",
+                  "var(--color-orange-700)",
+                ]}
+              />
+            </div>
+          </div>
+
           <div className="col-span-2 grid grid-cols-subgrid gap-2 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
             <h3 className="col-span-2 text-center text-lg">Vendas</h3>
             <hr className="col-span-2 mb-2 border-primary-400 border-dashed" />
@@ -104,20 +142,6 @@ export default function App() {
                 {data.total.length}
               </strong>
             </div>
-          </div>
-
-          <div className="col-span-2 row-span-2 flex flex-col items-center justify-between gap-6 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
-            <h3>Áreas de venda</h3>
-
-            <PieChart
-              data={salesByArea}
-              name={(i) => i.area}
-              value={(i) => i.value}
-              colorStops={[
-                "var(--color-accent-300)",
-                "var(--color-accent-700)",
-              ]}
-            />
           </div>
 
           <div className="col-span-2 row-span-2 flex flex-col items-center justify-between gap-6 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
