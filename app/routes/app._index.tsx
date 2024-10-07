@@ -5,7 +5,7 @@ import { z } from "zod"
 import { getUserOrRedirect } from "~/lib/authGuard"
 import { brl } from "~/lib/formatters"
 
-import SalesService from "~/services/SalesService"
+import SalesService, { type SellType } from "~/services/SalesService"
 
 import { Button, Table, Select } from "~/components/ui"
 
@@ -29,13 +29,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!year) {
     year = new Date().getFullYear()
   }
-  const [data, userData, newClients, something] = await Promise.all([
+  const [data, userData, newClients, commissions] = await Promise.all([
     SalesService.getByMonth(month, year),
     SalesService.getByMonthAndUser(month, year, user.id),
     SalesService.getNewClientsByMonth(month, year),
     SalesService.getCommissionsByMonth(month, year),
   ])
-  console.log(something)
 
   const repurchase: { total: number; user: number } = { total: 0, user: 0 }
 
@@ -46,6 +45,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
+  const clients: { repurchase: number; new: number } = { repurchase: 0, new: 0 }
+
+  for (const d of data) {
+    if (d.isRepurchase) {
+      clients.repurchase++
+    } else {
+      clients.new++
+    }
+  }
+
   return json({
     month,
     year,
@@ -53,35 +62,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       total: data,
       user: userData,
       newClients,
+      clients,
       repurchase,
-      commissions: something,
+      commissions,
     },
   })
 }
 
 export default function App() {
   const { data } = useLoaderData<typeof loader>()
-  console.log(data.commissions)
 
-  const salesByArea = Object.entries(
-    data.total.reduce(
-      (acc, i) => {
-        acc[i.area.name] = acc[i.area.name] + 1 || 1
-        return acc
-      },
-      {} as Record<string, number>,
-    ),
-  ).map(([k, v]) => ({ id: k, area: k, value: v }))
+  const salesByArea: Record<string, number> = {}
+  for (const sale of data.total) {
+    salesByArea[sale.area.name] = salesByArea[sale.area.name] + 1 || 1
+  }
 
-  const salesByType = Object.entries(
-    data.newClients.reduce(
-      (acc, i) => {
-        acc[i.sellType] = acc[i.sellType] + 1 || 1
-        return acc
-      },
-      {} as Record<string, number>,
-    ),
-  ).map(([k, v]) => ({ id: k, type: k, value: v }))
+  const newClientsByType: Record<SellType, number> = { ATIVO: 0, PASSIVO: 0 }
+  for (const sale of data.newClients) {
+    newClientsByType[sale.sellType] = newClientsByType[sale.sellType] + 1 || 1
+  }
 
   return (
     <div>
@@ -97,7 +96,11 @@ export default function App() {
             <h3>Áreas de venda</h3>
 
             <PieChart
-              data={salesByArea}
+              data={Object.entries(salesByArea).map(([k, v]) => ({
+                id: k,
+                area: k,
+                value: v,
+              }))}
               name={(i) => i.area}
               value={(i) => i.value}
               colorStops={[
@@ -111,15 +114,25 @@ export default function App() {
             <h3 className="col-span-2 text-lg">Comissões</h3>
 
             <div className="col-span-2 row-start-2">
-              <HorizontalBarChart
-                w={100}
-                h={50}
-                data={data.commissions.map((c) => ({ ...c, id: c.area.id }))}
-                name={(c) => c.area.name}
-                value={(c) => c.sellCount / c.area.goal}
-                markers={[0.5, 0.75, 1, 1.1]}
-                colorStops={["var(--color-teal-300)", "var(--color-teal-600)"]}
-              />
+              {data.commissions.length === 0 ? (
+                <span className="block py-8 font-semibold">
+                  Nenhuma venda realizada até agora...
+                </span>
+              ) : (
+                <HorizontalBarChart
+                  w={100}
+                  h={50}
+                  markerFormat={(m) => `${Math.round(m * 100)}%`}
+                  data={data.commissions.map((c) => ({ ...c, id: c.area.id }))}
+                  name={(c) => c.area.name}
+                  value={(c) => c.sellCount / c.area.goal}
+                  markers={[0.5, 0.75, 1, 1.1]}
+                  colorStops={[
+                    "var(--color-teal-300)",
+                    "var(--color-teal-600)",
+                  ]}
+                />
+              )}
             </div>
 
             <div className="col-span-2 row-span-2 grid grid-rows-subgrid text-center">
@@ -131,29 +144,56 @@ export default function App() {
             </div>
           </div>
 
-          <div className="col-span-2 grid grid-cols-subgrid gap-2 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
-            <h3 className="col-span-2 text-center text-lg">Vendas</h3>
-            <hr className="col-span-2 mb-2 border-primary-400 border-dashed" />
+          <div className="col-span-2 row-span-2 grid grid-cols-subgrid gap-2 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
+            <div className="col-span-2">
+              <h3 className="text-center text-lg">Vendas</h3>
+              <hr className="mb-4 border-primary-400 border-dashed" />
 
-            <div className="flex flex-col items-center justify-between gap-6">
-              Você
-              <strong className="text-3xl text-primary-700">
-                {data.user.length}
-              </strong>
+              <div className="flex items-center justify-around">
+                <div className="flex flex-col items-center justify-between gap-6">
+                  Você
+                  <strong className="text-3xl text-primary-700">
+                    {data.user.length}
+                  </strong>
+                </div>
+                <div className="flex flex-col items-center justify-between gap-6">
+                  Total
+                  <strong className="text-3xl text-primary-700">
+                    {data.total.length}
+                  </strong>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col items-center justify-between gap-6">
-              Total
-              <strong className="text-3xl text-primary-700">
-                {data.total.length}
-              </strong>
+            <div className="col-span-2">
+              <h3 className="text-center text-lg">Novos clientes</h3>
+              <hr className="mb-4 border-primary-400 border-dashed" />
+
+              <div className="flex items-center justify-around">
+                <div className="flex flex-col items-center justify-between gap-6">
+                  Recompra
+                  <strong className="text-3xl text-primary-700">
+                    {data.clients.repurchase}
+                  </strong>
+                </div>
+                <div className="flex flex-col items-center justify-between gap-6">
+                  Novos
+                  <strong className="text-3xl text-primary-700">
+                    {data.clients.new}
+                  </strong>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="col-span-2 row-span-2 flex flex-col items-center justify-between gap-6 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
-            <h3>Clientes novos</h3>
+            <h3>Fonte dos clientes novos</h3>
 
             <BarChart
-              data={salesByType}
+              data={Object.entries(newClientsByType).map(([k, v]) => ({
+                id: k,
+                type: k,
+                value: v,
+              }))}
               name={(i) => i.type}
               value={(i) => i.value}
               w={100}

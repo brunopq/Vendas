@@ -4,6 +4,7 @@ type HorizontalBarChartProps<T extends { id: string }> = {
   data: T[]
   value: (item: T) => number
   name: (item: T) => string
+  markerFormat: (m: number) => string
   markers?: number[]
   w?: number
   h?: number
@@ -24,6 +25,7 @@ export function HorizontalBarChart<T extends { id: string }>({
   name,
   value,
   markers = [],
+  markerFormat,
   color,
   colorStops,
   w = 100,
@@ -123,8 +125,8 @@ export function HorizontalBarChart<T extends { id: string }>({
             strokeWidth=".5"
             strokeDasharray="1 1.5"
           />
-          <text x={m.x} y={h} fontSize="20%">
-            {m.label}
+          <text x={m.x} y={h} textAnchor="middle" fontSize="20%">
+            {markerFormat(m.label)}
           </text>
         </g>
       ))}

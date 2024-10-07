@@ -1,13 +1,20 @@
 import { endOfMonth, startOfMonth } from "date-fns"
 import { between, eq, sql } from "drizzle-orm"
+import type { z } from "zod"
 
 import { db } from "~/db"
 import { area, newSaleSchema, sale } from "~/db/schema"
-import type { Sale as DbSale, NewSale as DbNewSale } from "~/db/schema"
+import type {
+  Sale as DbSale,
+  NewSale as DbNewSale,
+  sellTypeSchema,
+} from "~/db/schema"
 
 export type DomainSale = DbSale
 export type NewSale = DbNewSale
 export { newSaleSchema }
+
+export type SellType = z.infer<ReturnType<typeof sellTypeSchema>>
 
 class SalesService {
   private validateDate(month: number, year: number): Date {

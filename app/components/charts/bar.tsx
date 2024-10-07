@@ -89,7 +89,7 @@ export function BarChart<T extends { id: string }>({
 
           <text
             x={(b.x || 0) + x.bandwidth() / 2}
-            y={h - b.h}
+            y={b.h === 0 ? "90%" : h - b.h}
             dy="-0.125em"
             fontSize="50%"
             fontWeight={600}
