@@ -1,15 +1,20 @@
 import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import { useState } from "react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
+  type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
 import { z } from "zod"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
 import { brl } from "~/lib/formatters"
+import { cn } from "~/lib/utils"
 
 import SalesService, {
   type DomainSale,
@@ -21,7 +26,6 @@ import { Button, Table, Select, DropdownMenu } from "~/components/ui"
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
-import { useState } from "react"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -300,7 +304,7 @@ function DateSelection() {
 
 const defaultColumns: ColumnDef<DomainSale>[] = [
   {
-    id: "data",
+    id: "date",
     header: "Data",
     accessorKey: "date",
   },
@@ -343,15 +347,21 @@ function RecentSales() {
 
   const [tableData, setTableData] = useState(data.total)
   const [visibleColumns, setVisibleColumns] = useState({})
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "date", desc: true },
+  ])
 
   const table = useReactTable({
     data: tableData,
     columns: defaultColumns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     state: {
       columnVisibility: visibleColumns,
+      sorting,
     },
     onColumnVisibilityChange: setVisibleColumns,
+    onSortingChange: setSorting,
   })
 
   return (
@@ -396,17 +406,27 @@ function RecentSales() {
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            {table
-              .getHeaderGroups()
-              .map((group) =>
-                group.headers.map((c) => (
-                  <Table.Head key={c.id}>
+            {table.getHeaderGroups().map((group) =>
+              group.headers.map((c) => (
+                <Table.Head
+                  onClick={c.column.getToggleSortingHandler()}
+                  key={c.id}
+                >
+                  <span className="flex select-none items-center gap-2">
                     {c.isPlaceholder
                       ? null
                       : flexRender(c.column.columnDef.header, c.getContext())}
-                  </Table.Head>
-                )),
-              )}
+
+                    <ChevronDown
+                      className={cn("transition-transform duration-300", {
+                        "scale-0": !c.column.getIsSorted(),
+                        "rotate-180": c.column.getIsSorted() === "desc",
+                      })}
+                    />
+                  </span>
+                </Table.Head>
+              )),
+            )}
           </Table.Row>
         </Table.Header>
 
@@ -420,18 +440,6 @@ function RecentSales() {
               ))}
             </Table.Row>
           ))}
-          {/* {tableData.map((d) => (
-            <Table.Row key={d.id}>
-              <Table.Cell>{d.date}</Table.Cell>
-              <Table.Cell>{d.seller.name}</Table.Cell>
-              <Table.Cell>{d.area.name}</Table.Cell>
-              <Table.Cell>{d.adverseParty}</Table.Cell>
-              <Table.Cell>{brl(d.estimatedValue)}</Table.Cell>
-              <Table.Cell>{d.isRepurchase ? "Sim" : "Não"}</Table.Cell>
-              <Table.Cell>{d.client}</Table.Cell>
-              <Table.Cell>{d.sellType}</Table.Cell>
-            </Table.Row>
-          ))} */}
         </Table.Body>
       </Table.Root>
     </div>
