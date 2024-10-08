@@ -1,17 +1,27 @@
 import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
 import { z } from "zod"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
 import { brl } from "~/lib/formatters"
 
-import SalesService, { type SellType } from "~/services/SalesService"
+import SalesService, {
+  type DomainSale,
+  type SellType,
+} from "~/services/SalesService"
 
-import { Button, Table, Select } from "~/components/ui"
+import { Button, Table, Select, DropdownMenu } from "~/components/ui"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
+import { useState } from "react"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -225,45 +235,7 @@ export default function App() {
         </div>
       </div>
 
-      <div>
-        <header className="mb-4 flex items-center justify-between gap-2">
-          <h2 className="font-medium text-2xl">Vendas recentes</h2>
-
-          <Button variant="link" asChild>
-            <Link to="venda">Nova venda</Link>
-          </Button>
-        </header>
-
-        <Table.Root>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Data</Table.Head>
-              <Table.Head>Vendedor</Table.Head>
-              <Table.Head>Área</Table.Head>
-              <Table.Head>Parte adversária</Table.Head>
-              <Table.Head>Valor estimado</Table.Head>
-              <Table.Head>Recompra</Table.Head>
-              <Table.Head>Cliente</Table.Head>
-              <Table.Head>Tipo</Table.Head>
-            </Table.Row>
-          </Table.Header>
-
-          <Table.Body>
-            {data.total.map((d) => (
-              <Table.Row key={d.id}>
-                <Table.Cell>{d.date}</Table.Cell>
-                <Table.Cell>{d.seller.name}</Table.Cell>
-                <Table.Cell>{d.area.name}</Table.Cell>
-                <Table.Cell>{d.adverseParty}</Table.Cell>
-                <Table.Cell>{brl(d.estimatedValue)}</Table.Cell>
-                <Table.Cell>{d.isRepurchase ? "Sim" : "Não"}</Table.Cell>
-                <Table.Cell>{d.client}</Table.Cell>
-                <Table.Cell>{d.sellType}</Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Root>
-      </div>
+      <RecentSales />
 
       <footer className="mt-16 py-16" />
     </div>
@@ -323,5 +295,145 @@ function DateSelection() {
         </Select.Content>
       </Select.Root>
     </Form>
+  )
+}
+
+const defaultColumns: ColumnDef<DomainSale>[] = [
+  {
+    id: "data",
+    header: "Data",
+    accessorKey: "date",
+  },
+  {
+    id: "client",
+    header: "Cliente",
+    accessorKey: "client",
+  },
+  {
+    id: "seller",
+    header: "Vendedor",
+    accessorKey: "seller.name",
+  },
+  {
+    id: "area",
+    header: "Área",
+    accessorKey: "area.name",
+  },
+  {
+    id: "isRepurchase",
+    header: "Recompra?",
+    accessorKey: "isRepurchase",
+    cell: (info) => (info.getValue() ? "Sim" : "Não"),
+  },
+  {
+    id: "sellType",
+    header: "Tipo",
+    accessorKey: "sellType",
+  },
+  {
+    id: "estimatedValue",
+    header: "Valor estimado",
+    accessorKey: "estimatedValue",
+    cell: (info) => brl(String(info.getValue())),
+  },
+]
+
+function RecentSales() {
+  const { data } = useLoaderData<typeof loader>()
+
+  const [tableData, setTableData] = useState(data.total)
+  const [visibleColumns, setVisibleColumns] = useState({})
+
+  const table = useReactTable({
+    data: tableData,
+    columns: defaultColumns,
+    getCoreRowModel: getCoreRowModel(),
+    state: {
+      columnVisibility: visibleColumns,
+    },
+    onColumnVisibilityChange: setVisibleColumns,
+  })
+
+  return (
+    <div>
+      <header className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="font-medium text-2xl">Vendas recentes</h2>
+
+        <Button variant="link" asChild>
+          <Link to="venda">Nova venda</Link>
+        </Button>
+      </header>
+      <fieldset className="mb-4">
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <Button size="sm" variant="ghost">
+              Selecione colunas
+            </Button>
+          </DropdownMenu.Trigger>
+
+          <DropdownMenu.Content>
+            {table.getAllLeafColumns().map((column) => (
+              <DropdownMenu.CheckboxItem
+                key={column.id}
+                {...{
+                  type: "checkbox",
+                  checked: column.getIsVisible(),
+                  onSelect: (e) => {
+                    e.preventDefault()
+                    column.getToggleVisibilityHandler()(e)
+                  },
+                }}
+                className="px-1"
+              >
+                {typeof column.columnDef.header === "string" &&
+                  column.columnDef.header}
+              </DropdownMenu.CheckboxItem>
+            ))}
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      </fieldset>
+
+      <Table.Root>
+        <Table.Header>
+          <Table.Row>
+            {table
+              .getHeaderGroups()
+              .map((group) =>
+                group.headers.map((c) => (
+                  <Table.Head key={c.id}>
+                    {c.isPlaceholder
+                      ? null
+                      : flexRender(c.column.columnDef.header, c.getContext())}
+                  </Table.Head>
+                )),
+              )}
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {table.getRowModel().rows.map((row) => (
+            <Table.Row key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <Table.Cell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </Table.Cell>
+              ))}
+            </Table.Row>
+          ))}
+          {/* {tableData.map((d) => (
+            <Table.Row key={d.id}>
+              <Table.Cell>{d.date}</Table.Cell>
+              <Table.Cell>{d.seller.name}</Table.Cell>
+              <Table.Cell>{d.area.name}</Table.Cell>
+              <Table.Cell>{d.adverseParty}</Table.Cell>
+              <Table.Cell>{brl(d.estimatedValue)}</Table.Cell>
+              <Table.Cell>{d.isRepurchase ? "Sim" : "Não"}</Table.Cell>
+              <Table.Cell>{d.client}</Table.Cell>
+              <Table.Cell>{d.sellType}</Table.Cell>
+            </Table.Row>
+          ))} */}
+        </Table.Body>
+      </Table.Root>
+    </div>
   )
 }
