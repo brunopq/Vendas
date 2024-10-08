@@ -1,4 +1,8 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import {
+  json,
+  type MetaFunction,
+  type LoaderFunctionArgs,
+} from "@remix-run/node"
 import { Link, Outlet, useLoaderData } from "@remix-run/react"
 
 import { maxWidth } from "~/lib/utils"
@@ -9,6 +13,12 @@ import { Button } from "~/components/ui"
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json(await getUserOrRedirect(request, "/login"))
 }
+
+export const meta: MetaFunction = () => [
+  {
+    title: "Vendas Iboti",
+  },
+]
 
 export default function App() {
   const user = useLoaderData<typeof loader>()

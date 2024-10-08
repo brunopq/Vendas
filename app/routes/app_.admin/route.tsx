@@ -2,6 +2,7 @@ import {
   json,
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
+  type MetaFunction,
 } from "@remix-run/node"
 import { z, ZodError } from "zod"
 
@@ -17,6 +18,12 @@ import { maxWidth } from "~/lib/utils"
 
 import { UsersSection } from "./UsersSection"
 import { SellTypesSection } from "./SellTypesSection"
+
+export const meta: MetaFunction = () => [
+  {
+    title: "Admin | Vendas Iboti",
+  },
+]
 
 const userSchema = z.object({
   name: z.string({ required_error: "Insira o nome do usuário" }),

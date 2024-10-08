@@ -1,6 +1,7 @@
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
+  MetaFunction,
   TypedResponse,
 } from "@remix-run/node"
 import {
@@ -37,6 +38,12 @@ import {
 } from "~/components/ui"
 
 import FormGroup from "~/components/FormGroup"
+
+export const meta: MetaFunction = () => [
+  {
+    title: "Nova venda",
+  },
+]
 
 const formSchema = z.object({
   date: z

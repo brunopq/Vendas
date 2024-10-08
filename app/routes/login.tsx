@@ -1,4 +1,8 @@
-import type { ActionFunction, LoaderFunctionArgs } from "@remix-run/node"
+import type {
+  ActionFunction,
+  LoaderFunctionArgs,
+  MetaFunction,
+} from "@remix-run/node"
 import {
   Form,
   json,
@@ -13,6 +17,12 @@ import { commitSession, getSession, getUser } from "~/session"
 import AuthService from "~/services/AuthService"
 
 import { Button, Input } from "~/components/ui"
+
+export const meta: MetaFunction = () => [
+  {
+    title: "Login | Vendas Iboti",
+  },
+]
 
 const formValidator = z.object({
   name: z.string().min(1),
