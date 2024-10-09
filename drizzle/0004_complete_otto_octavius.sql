@@ -1,0 +1,1 @@
+ALTER TABLE "sales" ALTER COLUMN "estimated_value" DROP NOT NULL;

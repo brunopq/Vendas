@@ -15,7 +15,7 @@ import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
 import { z } from "zod"
 
-import { campaignSchema, captationTypeSchema } from "~/db/schema"
+import { captationTypeSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
 import CampaignService from "~/services/CampaignService"
 
@@ -63,8 +63,9 @@ const formSchema = z.object({
     .min(1, "Insira a parte adversa"),
   isRepurchase: z.coerce.boolean().default(false),
   estimatedValue: z
-    .string({ required_error: "Insira um valor estimado" })
-    .regex(/^\d+(\.\d{1,2})?$/, "Valor estimado deve estar no formato correto"),
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/, "Valor estimado deve estar no formato correto")
+    .optional(),
   comments: z.string().optional(),
 })
 
@@ -101,9 +102,11 @@ export const action = async ({
       data.isRepurchase = false
     }
 
-    data.estimatedValue = currencyToNumeric(
-      typeof data.estimatedValue === "string" ? data.estimatedValue : "",
-    )
+    if (data.estimatedValue) {
+      data.estimatedValue = currencyToNumeric(
+        typeof data.estimatedValue === "string" ? data.estimatedValue : "",
+      )
+    }
 
     const parsed = formSchema.safeParse(data)
     if (!parsed.success) {

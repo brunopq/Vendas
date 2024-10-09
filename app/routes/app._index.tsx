@@ -346,7 +346,10 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
     id: "estimatedValue",
     header: "Valor estimado",
     accessorKey: "estimatedValue",
-    cell: (info) => brl(String(info.getValue())),
+    cell: (info) =>
+      info.getValue() === null
+        ? "Sem estimativa"
+        : brl(String(info.getValue())),
   },
 ]
 

@@ -55,6 +55,7 @@ export const sale = pgTable("sales", {
   campaign: char("campaign", { length: idLength })
     .references(() => campaign.id)
     .notNull(),
+  // TODO: add sell area
   // TODO: make a separate table, integrate with CRM...
   client: text("client").notNull(),
   adverseParty: text("adverse_party").notNull(),
@@ -62,7 +63,7 @@ export const sale = pgTable("sales", {
   estimatedValue: numeric("estimated_value", {
     precision: 16,
     scale: 2,
-  }).notNull(),
+  }),
   comments: text("comments"),
 })
 
