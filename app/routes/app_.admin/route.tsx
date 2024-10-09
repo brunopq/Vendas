@@ -9,7 +9,7 @@ import { z, ZodError } from "zod"
 import { userRoleSchmea } from "~/db/schema"
 
 import AuthService from "~/services/AuthService"
-import SaleAreaService from "~/services/SaleAreaService"
+import CampaignService from "~/services/CampaignService"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { currencyToNumeric } from "~/lib/formatters"
@@ -17,7 +17,7 @@ import { typedError, typedOk } from "~/lib/result"
 import { maxWidth } from "~/lib/utils"
 
 import { UsersSection } from "./UsersSection"
-import { SellTypesSection } from "./SellTypesSection"
+import { CampaignsSection } from "./CampaignsSection"
 
 export const meta: MetaFunction = () => [
   {
@@ -31,8 +31,8 @@ const userSchema = z.object({
   role: userRoleSchmea({ invalid_type_error: "Tipo de usuário inválido" }),
 })
 
-const sellTypeSchema = z.object({
-  category: z.string({ required_error: "Insira um nome para a categoria" }),
+const campaignSchema = z.object({
+  name: z.string({ required_error: "Insira um nome para a campanha" }),
   goal: z.coerce
     .number({ required_error: "Insira uma quantidade" })
     .positive("A quantidade deve ser maior que 0"),
@@ -53,16 +53,14 @@ async function handleNewUser(data: Record<string, unknown>) {
   return typedOk(await AuthService.create(parsed))
 }
 
-async function handleNewSellType(data: Record<string, unknown>) {
+async function handleNewCampaign(data: Record<string, unknown>) {
   if (data.prize) {
     data.prize = currencyToNumeric(String(data.prize))
   }
 
-  const parsed = sellTypeSchema.parse(data)
+  const parsed = campaignSchema.parse(data)
 
-  return typedOk(
-    await SaleAreaService.create({ ...parsed, name: parsed.category }),
-  )
+  return typedOk(await CampaignService.create(parsed))
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -71,7 +69,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const type = form.get("type")
     const id = form.get("id")
 
-    if (!type || (type !== "area" && type !== "user")) {
+    if (!type || (type !== "campaign" && type !== "user")) {
       return typedOk({})
     }
     if (!id) {
@@ -81,8 +79,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (type === "user") {
       await AuthService.delete(String(id))
     }
-    if (type === "area") {
-      await SaleAreaService.delete(String(id))
+    if (type === "campaign") {
+      await CampaignService.delete(String(id))
     }
 
     return typedOk({})
@@ -103,8 +101,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (data.actionType === "user") {
       return await handleNewUser(data)
     }
-    if (data.actionType === "sellType") {
-      return await handleNewSellType(data)
+    if (data.actionType === "campaign") {
+      return await handleNewCampaign(data)
     }
 
     throw new Error("Invalid form type")
@@ -126,9 +124,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getAdminOrRedirect(request)
 
   const users = await AuthService.index()
-  const sellTypes = await SaleAreaService.index()
+  const campaigns = await CampaignService.index()
 
-  return json({ users, sellTypes })
+  return json({ users, campaigns })
 }
 
 export default function Admin() {
@@ -141,7 +139,7 @@ export default function Admin() {
 
       <UsersSection />
 
-      <SellTypesSection />
+      <CampaignsSection />
     </>
   )
 }

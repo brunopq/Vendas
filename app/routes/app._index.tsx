@@ -1,7 +1,7 @@
 import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useState } from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import {
   type ColumnDef,
   flexRender,
@@ -18,7 +18,7 @@ import { cn } from "~/lib/utils"
 
 import SalesService, {
   type DomainSale,
-  type SellType,
+  type CaptationType,
 } from "~/services/SalesService"
 
 import { Button, Table, Select, DropdownMenu } from "~/components/ui"
@@ -86,14 +86,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function App() {
   const { data } = useLoaderData<typeof loader>()
 
-  const salesByArea: Record<string, number> = {}
+  const salesByCampaign: Record<string, number> = {}
   for (const sale of data.total) {
-    salesByArea[sale.area.name] = salesByArea[sale.area.name] + 1 || 1
+    salesByCampaign[sale.campaign.name] =
+      salesByCampaign[sale.campaign.name] + 1 || 1
   }
 
-  const newClientsByType: Record<SellType, number> = { ATIVO: 0, PASSIVO: 0 }
+  const newClientsByType: Record<CaptationType, number> = {
+    ATIVO: 0,
+    PASSIVO: 0,
+  }
   for (const sale of data.newClients) {
-    newClientsByType[sale.sellType] = newClientsByType[sale.sellType] + 1 || 1
+    newClientsByType[sale.captationType] =
+      newClientsByType[sale.captationType] + 1 || 1
   }
 
   return (
@@ -107,10 +112,10 @@ export default function App() {
 
         <div className="grid grid-cols-6 gap-4">
           <div className="col-span-2 row-span-2 flex flex-col items-center justify-between gap-6 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
-            <h3>Áreas de venda</h3>
+            <h3>Campanhas</h3>
 
             <PieChart
-              data={Object.entries(salesByArea).map(([k, v]) => ({
+              data={Object.entries(salesByCampaign).map(([k, v]) => ({
                 id: k,
                 area: k,
                 value: v,
@@ -137,9 +142,12 @@ export default function App() {
                   w={100}
                   h={50}
                   markerFormat={(m) => `${Math.round(m * 100)}%`}
-                  data={data.commissions.map((c) => ({ ...c, id: c.area.id }))}
-                  name={(c) => c.area.name}
-                  value={(c) => c.sellCount / c.area.goal}
+                  data={data.commissions.map((c) => ({
+                    ...c,
+                    id: c.campaign.id,
+                  }))}
+                  name={(c) => c.campaign.name}
+                  value={(c) => c.sellCount / c.campaign.goal}
                   markers={[0.5, 0.75, 1, 1.1]}
                   colorStops={[
                     "var(--color-teal-300)",
@@ -319,9 +327,9 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
     accessorKey: "seller.name",
   },
   {
-    id: "area",
-    header: "Área",
-    accessorKey: "area.name",
+    id: "campaign",
+    header: "Campanha",
+    accessorKey: "campaign.name",
   },
   {
     id: "isRepurchase",
@@ -330,9 +338,9 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
     cell: (info) => (info.getValue() ? "Sim" : "Não"),
   },
   {
-    id: "sellType",
+    id: "captationType",
     header: "Tipo",
-    accessorKey: "sellType",
+    accessorKey: "captationType",
   },
   {
     id: "estimatedValue",

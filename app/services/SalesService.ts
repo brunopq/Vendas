@@ -1,20 +1,19 @@
 import { endOfMonth, startOfMonth } from "date-fns"
 import { between, eq, sql } from "drizzle-orm"
-import type { z } from "zod"
 
 import { db } from "~/db"
-import { area, newSaleSchema, sale } from "~/db/schema"
+import { campaign, newSaleSchema, sale } from "~/db/schema"
 import type {
   Sale as DbSale,
   NewSale as DbNewSale,
-  sellTypeSchema,
+  CaptationType as DbCaptationType,
 } from "~/db/schema"
 
 export type DomainSale = DbSale
 export type NewSale = DbNewSale
 export { newSaleSchema }
 
-export type SellType = z.infer<ReturnType<typeof sellTypeSchema>>
+export type CaptationType = DbCaptationType
 
 class SalesService {
   private validateDate(month: number, year: number): Date {
@@ -28,7 +27,7 @@ class SalesService {
   async index() {
     return await db.query.sale.findMany({
       with: {
-        area: { columns: { name: true } },
+        campaign: { columns: { name: true } },
         seller: { columns: { name: true } },
       },
     })
@@ -51,7 +50,7 @@ class SalesService {
           endOfMonth(date).toDateString(),
         ),
       with: {
-        area: { columns: { name: true } },
+        campaign: { columns: { name: true } },
         seller: { columns: { name: true } },
       },
     })
@@ -71,7 +70,7 @@ class SalesService {
           ),
         ),
       with: {
-        area: { columns: { name: true } },
+        campaign: { columns: { name: true } },
         seller: { columns: { name: true } },
       },
     })
@@ -91,7 +90,7 @@ class SalesService {
           ),
         ),
       with: {
-        area: { columns: { name: true } },
+        campaign: { columns: { name: true } },
         seller: { columns: { name: true } },
       },
     })
@@ -100,14 +99,14 @@ class SalesService {
   async getCommissionsByMonth(month: number, year: number) {
     const date = this.validateDate(month, year)
 
-    const a = await db
+    const comissions = await db
       .select({
-        area,
+        campaign: campaign,
         sellCount: sql<number>`cast(count(${sale.id}) as int)`,
         comission: sql<number>`cast(0 as int)`,
       })
-      .from(area)
-      .leftJoin(sale, eq(area.id, sale.area))
+      .from(campaign)
+      .leftJoin(sale, eq(campaign.id, sale.campaign))
       .where(
         between(
           sale.date,
@@ -115,29 +114,29 @@ class SalesService {
           endOfMonth(date).toDateString(),
         ),
       )
-      .groupBy(area.id)
+      .groupBy(campaign.id)
       .orderBy(
-        sql`cast(count(${sale.id}) as double precision) / ${area.goal} desc`,
+        sql`cast(count(${sale.id}) as double precision) / ${campaign.goal} desc`,
       )
 
-    for (const area of a) {
-      const percentage = area.sellCount / area.area.goal
+    for (const campaign of comissions) {
+      const percentage = campaign.sellCount / campaign.campaign.goal
 
       if (percentage >= 0.5) {
-        area.comission = Number(area.area.prize) * 0.5
+        campaign.comission = Number(campaign.campaign.prize) * 0.5
       }
       if (percentage >= 0.75) {
-        area.comission = Number(area.area.prize) * 0.75
+        campaign.comission = Number(campaign.campaign.prize) * 0.75
       }
       if (percentage >= 1) {
-        area.comission = Number(area.area.prize) * 1
+        campaign.comission = Number(campaign.campaign.prize) * 1
       }
       if (percentage >= 1.1) {
-        area.comission = Number(area.area.prize) * 1.1
+        campaign.comission = Number(campaign.campaign.prize) * 1.1
       }
     }
 
-    return a
+    return comissions
   }
 
   async create(newSale: NewSale) {

@@ -19,7 +19,7 @@ const nanoid = customAlphabet(
   idLength,
 )
 
-export const sellTypes = pgEnum("sell_type", ["ATIVO", "PASSIVO"])
+export const captationTypes = pgEnum("captation_type", ["ATIVO", "PASSIVO"])
 
 export const userRoles = pgEnum("user_roles", ["ADMIN", "SELLER"])
 
@@ -34,14 +34,14 @@ export const userRelations = relations(user, ({ many }) => ({
   sales: many(sale),
 }))
 
-export const area = pgTable("areas", {
+export const campaign = pgTable("campaigns", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
   name: text("name").notNull().unique(),
   goal: integer("goal").notNull(),
   prize: numeric("prize", { precision: 16, scale: 2 }).notNull(),
 })
 
-export const areaRelations = relations(area, ({ many }) => ({
+export const campaignRelations = relations(campaign, ({ many }) => ({
   sales: many(sale),
 }))
 
@@ -51,9 +51,9 @@ export const sale = pgTable("sales", {
   seller: char("seller", { length: idLength })
     .references(() => user.id)
     .notNull(),
-  sellType: sellTypes("sell_type").notNull(),
-  area: char("area", { length: idLength })
-    .references(() => area.id)
+  captationType: captationTypes("captation_type").notNull(),
+  campaign: char("campaign", { length: idLength })
+    .references(() => campaign.id)
     .notNull(),
   // TODO: make a separate table, integrate with CRM...
   client: text("client").notNull(),
@@ -68,25 +68,31 @@ export const sale = pgTable("sales", {
 
 export const saleRelations = relations(sale, ({ one }) => ({
   seller: one(user, { fields: [sale.seller], references: [user.id] }),
-  area: one(area, { fields: [sale.area], references: [area.id] }),
+  campaign: one(campaign, {
+    fields: [sale.campaign],
+    references: [campaign.id],
+  }),
 }))
 
 //
 // types and schemas
 
-export const sellTypeSchema = (params?: z.RawCreateParams) =>
-  z.enum(sellTypes.enumValues, params)
+export const captationTypeSchema = (params?: z.RawCreateParams) =>
+  z.enum(captationTypes.enumValues, params)
 export const userRoleSchmea = (params?: z.RawCreateParams) =>
   z.enum(userRoles.enumValues, params)
 
 export const userSchema = createSelectSchema(user)
 export const newUserSchema = createInsertSchema(user)
 
-export const areaSchema = createSelectSchema(area)
-export const newAreaSchema = createInsertSchema(area)
+export const campaignSchema = createSelectSchema(campaign)
+export const newCampaignSchema = createInsertSchema(campaign)
 
 export const saleSchema = createSelectSchema(sale)
 export const newSaleSchema = createInsertSchema(sale)
+
+export type CaptationType = z.infer<ReturnType<typeof captationTypeSchema>>
+export type UserRole = z.infer<ReturnType<typeof userRoleSchmea>>
 
 export type User = z.infer<typeof userSchema>
 export type NewUser = z.infer<typeof newUserSchema>
@@ -94,5 +100,5 @@ export type NewUser = z.infer<typeof newUserSchema>
 export type Sale = z.infer<typeof saleSchema>
 export type NewSale = z.infer<typeof newSaleSchema>
 
-export type Area = z.infer<typeof areaSchema>
-export type NewArea = z.infer<typeof newAreaSchema>
+export type Campaign = z.infer<typeof campaignSchema>
+export type NewCampaign = z.infer<typeof newCampaignSchema>

@@ -15,9 +15,9 @@ import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
 import { z } from "zod"
 
-import { sellTypeSchema } from "~/db/schema"
+import { campaignSchema, captationTypeSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
-import SaleAreaService from "~/services/SaleAreaService"
+import CampaignService from "~/services/CampaignService"
 
 import { type Result, typedOk, typedError } from "~/lib/result"
 import { currencyToNumeric } from "~/lib/formatters"
@@ -50,8 +50,8 @@ const formSchema = z.object({
     .string({ required_error: "Insira uma data" })
     .date("Data mal formatada"),
   seller: z.string({ message: "Seller is required" }),
-  area: z.string({ required_error: "Selecione a área da venda" }),
-  sellType: sellTypeSchema({
+  campaign: z.string({ required_error: "Selecione a campanha da venda" }),
+  captationType: captationTypeSchema({
     required_error: "Escolha um tipo de venda",
     invalid_type_error: "Tipo de venda inválido",
   }),
@@ -71,9 +71,9 @@ const formSchema = z.object({
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getUserOrRedirect(request)
 
-  const areas = await SaleAreaService.index()
+  const campaigns = await CampaignService.index()
 
-  return json(areas)
+  return json(campaigns)
 }
 
 type ActionResponse = Result<DomainSale, ErrorT[]>
@@ -122,7 +122,7 @@ export const action = async ({
 }
 
 export default function Venda() {
-  const areas = useLoaderData<typeof loader>()
+  const campaigns = useLoaderData<typeof loader>()
   const response = useActionData<typeof action>()
 
   let errors: ErrorT[] = []
@@ -163,13 +163,13 @@ export default function Venda() {
         <div className="flex flex-wrap gap-4">
           <FormGroup
             className="flex flex-1 flex-col"
-            name="sellType"
+            name="captationType"
             label="Tipo de captação"
           >
             {(removeErrors) => (
               <RadioGroup.Root
                 onChange={removeErrors}
-                name="sellType"
+                name="captationType"
                 className="flex flex-1 gap-4"
               >
                 {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
@@ -212,16 +212,16 @@ export default function Venda() {
           )}
         </FormGroup>
 
-        <FormGroup name="area" label="Área">
+        <FormGroup name="campaign" label="Campanha">
           {(removeErrors) => (
-            <Select.Root onValueChange={removeErrors} name="area">
+            <Select.Root onValueChange={removeErrors} name="campaign">
               <Select.Trigger>
                 <Select.Value placeholder="Selecione..." />
               </Select.Trigger>
               <Select.Content>
-                {areas.map((a) => (
-                  <Select.Item key={a.id} value={a.id}>
-                    {a.name}
+                {campaigns.map((c) => (
+                  <Select.Item key={c.id} value={c.id}>
+                    {c.name}
                   </Select.Item>
                 ))}
               </Select.Content>

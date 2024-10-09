@@ -27,13 +27,13 @@ import {
 
 import type { action, loader } from "./route"
 
-export function SellTypesSection() {
-  const { sellTypes } = useLoaderData<typeof loader>()
+export function CampaignsSection() {
+  const { campaigns } = useLoaderData<typeof loader>()
 
   return (
     <section className={maxWidth("mt-8")}>
       <header className="mb-4 flex items-center justify-between gap-2">
-        <h2 className="font-medium text-2xl">Categorias e metas</h2>
+        <h2 className="font-medium text-2xl">Campanhas e metas</h2>
 
         <Dialog.Root>
           <Dialog.Trigger asChild>
@@ -59,14 +59,14 @@ export function SellTypesSection() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {sellTypes.map((s) => (
-            <Table.Row key={s.id}>
-              <Table.Cell className="text-sm text-zinc-600">{s.id}</Table.Cell>
-              <Table.Cell>{s.name}</Table.Cell>
-              <Table.Cell>{s.goal}</Table.Cell>
-              <Table.Cell>{brl(s.prize)}</Table.Cell>
+          {campaigns.map((c) => (
+            <Table.Row key={c.id}>
+              <Table.Cell className="text-sm text-zinc-600">{c.id}</Table.Cell>
+              <Table.Cell>{c.name}</Table.Cell>
+              <Table.Cell>{c.goal}</Table.Cell>
+              <Table.Cell>{brl(c.prize)}</Table.Cell>
               <Table.Cell className="w-0">
-                <SellTypeDropdown id={s.id} />
+                <SellTypeDropdown id={c.id} />
               </Table.Cell>
             </Table.Row>
           ))}
@@ -93,7 +93,7 @@ function SellTypeDropdown({ id }: { id: string }) {
         </DropdownMenu.Item>
         <DropdownMenu.Item
           onClick={() =>
-            fetcher.submit({ type: "area", id: id }, { method: "delete" })
+            fetcher.submit({ type: "campaign", id: id }, { method: "delete" })
           }
           variant="danger"
         >
@@ -119,11 +119,11 @@ function NewSellTypeModal() {
   useEffect(() => {
     if (!response) return
     if (response.ok) {
-      toast({ title: "Categoria registrada com sucesso!" })
+      toast({ title: "Campanha registrada com sucesso!" })
     } else if (response.error.find((e) => e.type === "backend")) {
       toast({
         title: "Erro desconhecido",
-        description: "Não foi possível registrar nova categoria :(",
+        description: "Não foi possível registrar nova campanha :(",
         variant: "destructive",
       })
     }
@@ -131,16 +131,16 @@ function NewSellTypeModal() {
 
   return (
     <>
-      <Dialog.Title>Nova categoria</Dialog.Title>
+      <Dialog.Title>Nova campanha</Dialog.Title>
 
       <ErrorProvider initialErrors={errors}>
         <Form method="post" className="flex flex-col gap-4">
-          <input type="hidden" name="actionType" value="sellType" />
-          <FormGroup name="category" label="Nome da categoria">
+          <input type="hidden" name="actionType" value="campaign" />
+          <FormGroup name="name" label="Nome da campanha">
             {(removeError) => (
               <Input
                 onInput={removeError}
-                name="category"
+                name="name"
                 placeholder="Categoria..."
               />
             )}
