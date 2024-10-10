@@ -3,12 +3,13 @@ import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import {
-  type ColumnDef,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  type SortingState,
   useReactTable,
+  type SortingState,
+  type ColumnDef,
+  type VisibilityState,
 } from "@tanstack/react-table"
 import { z } from "zod"
 
@@ -356,13 +357,24 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
         ? "Sem estimativa"
         : brl(String(info.getValue())),
   },
+
+  {
+    id: "indication",
+    header: "Indicação",
+    accessorKey: "indication",
+  },
 ]
 
 function RecentSales() {
   const { data } = useLoaderData<typeof loader>()
 
   const [tableData, setTableData] = useState(data.total)
-  const [visibleColumns, setVisibleColumns] = useState({})
+  const [visibleColumns, setVisibleColumns] = useState<VisibilityState>({
+    indication: false,
+    captationType: false,
+    isRepurchase: false,
+  })
+
   const [sorting, setSorting] = useState<SortingState>([
     { id: "date", desc: true },
   ])
@@ -393,7 +405,8 @@ function RecentSales() {
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <Button size="sm" variant="ghost">
-              Selecione colunas
+              Selecione colunas ({table.getVisibleLeafColumns().length}/
+              {table.getAllColumns().length})
             </Button>
           </DropdownMenu.Trigger>
 
