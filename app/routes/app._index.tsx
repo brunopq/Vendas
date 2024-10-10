@@ -422,6 +422,7 @@ function RecentSales() {
                 <Table.Head
                   onClick={c.column.getToggleSortingHandler()}
                   key={c.id}
+                  className="group cursor-pointer"
                 >
                   <span className="flex select-none items-center gap-2">
                     {c.isPlaceholder
@@ -429,10 +430,10 @@ function RecentSales() {
                       : flexRender(c.column.columnDef.header, c.getContext())}
 
                     <ChevronDown
-                      className={cn("transition-transform duration-300", {
-                        "scale-0": !c.column.getIsSorted(),
-                        "rotate-180": c.column.getIsSorted() === "desc",
-                      })}
+                      data-sort={c.column.getIsSorted()}
+                      className={cn(
+                        "transition-transform duration-300 data-[sort='desc']:rotate-180 data-[sort=false]:scale-0 data-[sort=false]:group-hover:scale-50",
+                      )}
                     />
                   </span>
                 </Table.Head>
