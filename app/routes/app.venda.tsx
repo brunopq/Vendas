@@ -15,7 +15,7 @@ import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
 import { z } from "zod"
 
-import { captationTypeSchema } from "~/db/schema"
+import { captationTypeSchema, saleAreaSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
 import CampaignService from "~/services/CampaignService"
 
@@ -51,9 +51,13 @@ const formSchema = z.object({
     .date("Data mal formatada"),
   seller: z.string({ message: "Seller is required" }),
   campaign: z.string({ required_error: "Selecione a campanha da venda" }),
+  saleArea: saleAreaSchema({
+    required_error: "Selecione a área da venda",
+    invalid_type_error: "Área de venda inválido",
+  }),
   captationType: captationTypeSchema({
-    required_error: "Escolha um tipo de venda",
-    invalid_type_error: "Tipo de venda inválido",
+    required_error: "Escolha um tipo de captação",
+    invalid_type_error: "Tipo de captação inválido",
   }),
   client: z
     .string({ required_error: "Insira o nome do cliente" })
@@ -67,6 +71,7 @@ const formSchema = z.object({
     .regex(/^\d+(\.\d{1,2})?$/, "Valor estimado deve estar no formato correto")
     .optional(),
   comments: z.string().optional(),
+  indication: z.string().optional(),
 })
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -158,59 +163,29 @@ export default function Venda() {
         <h2 className="font-medium text-2xl">Nova venda</h2>
       </header>
 
-      <Form method="post" className="grid gap-4 sm:grid-cols-2">
-        <FormGroup name="date" label="Data da venda">
-          <Input name="date" id="date" type="date" />
-        </FormGroup>
-
-        <div className="flex flex-wrap gap-4">
-          <FormGroup
-            className="flex flex-1 flex-col"
-            name="captationType"
-            label="Tipo de captação"
-          >
-            {(removeErrors) => (
-              <RadioGroup.Root
-                onChange={removeErrors}
-                name="captationType"
-                className="flex flex-1 gap-4"
-              >
-                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-                <label className="flex items-center gap-2">
-                  <RadioGroup.Item value="ATIVO" /> Ativa
-                </label>
-                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-                <label className="flex items-center gap-2">
-                  <RadioGroup.Item value="PASSIVO" /> Passiva
-                </label>
-              </RadioGroup.Root>
-            )}
-          </FormGroup>
-
-          <FormGroup
-            className="flex flex-1 flex-col"
-            name="isRepurchase"
-            label="É recompra"
-          >
-            {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-            <label className="flex flex-1 items-center gap-2">
-              Sim
-              <Checkbox
-                name="isRepurchase"
-                id="isRepurchase"
-                className="block"
-              />
-            </label>
-          </FormGroup>
-        </div>
-
-        <FormGroup name="client" label="Cliente">
+      <Form method="post" className="mt-8 grid gap-x-4 gap-y-6 sm:grid-cols-4">
+        <FormGroup className="col-span-2" name="client" label="Cliente">
           {(removeErrors) => (
             <Input
               name="client"
               id="client"
               placeholder="Nome do cliente"
               onInput={removeErrors}
+            />
+          )}
+        </FormGroup>
+
+        <FormGroup
+          className="col-span-2"
+          name="adverseParty"
+          label="Parte adversa"
+        >
+          {(removeErrors) => (
+            <Input
+              onInput={removeErrors}
+              name="adverseParty"
+              id="adverseParty"
+              placeholder="Parte adversa"
             />
           )}
         </FormGroup>
@@ -232,18 +207,63 @@ export default function Venda() {
           )}
         </FormGroup>
 
-        <FormGroup name="adverseParty" label="Parte adversa">
+        <FormGroup name="saleArea" label="Área">
           {(removeErrors) => (
-            <Input
-              onInput={removeErrors}
-              name="adverseParty"
-              id="adverseParty"
-              placeholder="Parte adversa"
-            />
+            <Select.Root onValueChange={removeErrors} name="saleArea">
+              <Select.Trigger>
+                <Select.Value placeholder="Selecione..." />
+              </Select.Trigger>
+              <Select.Content>
+                {saleAreaSchema().options.map((area) => (
+                  <Select.Item key={area} value={area}>
+                    {area}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
           )}
         </FormGroup>
 
-        <FormGroup name="estimatedValue" label="Valor estimado">
+        <FormGroup
+          className="flex flex-col"
+          name="captationType"
+          label="Tipo de captação"
+        >
+          {(removeErrors) => (
+            <RadioGroup.Root
+              onChange={removeErrors}
+              name="captationType"
+              className="flex flex-1 gap-4"
+            >
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+              <label className="flex items-center gap-2">
+                <RadioGroup.Item value="ATIVO" /> Ativa
+              </label>
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+              <label className="flex items-center gap-2">
+                <RadioGroup.Item value="PASSIVO" /> Passiva
+              </label>
+            </RadioGroup.Root>
+          )}
+        </FormGroup>
+
+        <FormGroup
+          className="flex flex-col"
+          name="isRepurchase"
+          label="É recompra"
+        >
+          {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+          <label className="flex flex-1 items-center gap-2">
+            Sim
+            <Checkbox name="isRepurchase" id="isRepurchase" className="block" />
+          </label>
+        </FormGroup>
+
+        <FormGroup
+          className="col-span-2"
+          name="estimatedValue"
+          label="Valor estimado"
+        >
           {(removeErrors) => (
             <BrlInput
               onInput={removeErrors}
@@ -252,6 +272,14 @@ export default function Venda() {
               // placeholder="R$ 1.000,00"
             />
           )}
+        </FormGroup>
+
+        <FormGroup name="date" label="Data da venda">
+          <Input name="date" id="date" type="date" />
+        </FormGroup>
+
+        <FormGroup name="indication" label="Indicado por:">
+          <Input placeholder="Nome" />
         </FormGroup>
 
         <FormGroup
@@ -266,7 +294,7 @@ export default function Venda() {
           />
         </FormGroup>
 
-        <Button className="col-span-full mt-2 mr-auto w-fit">
+        <Button size="lg" className="mt-2 h-fit w-fit">
           Criar venda
         </Button>
       </Form>

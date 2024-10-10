@@ -20,6 +20,14 @@ const nanoid = customAlphabet(
 )
 
 export const captationTypes = pgEnum("captation_type", ["ATIVO", "PASSIVO"])
+export const saleArea = pgEnum("sale_area", [
+  "Cível estadual",
+  "Cível federal",
+  "Penal",
+  "Previdenciário",
+  "Trabalhista",
+  "Tributário",
+])
 
 export const userRoles = pgEnum("user_roles", ["ADMIN", "SELLER"])
 
@@ -55,7 +63,7 @@ export const sale = pgTable("sales", {
   campaign: char("campaign", { length: idLength })
     .references(() => campaign.id)
     .notNull(),
-  // TODO: add sell area
+  saleArea: saleArea("sale_area").notNull(),
   // TODO: make a separate table, integrate with CRM...
   client: text("client").notNull(),
   adverseParty: text("adverse_party").notNull(),
@@ -65,6 +73,7 @@ export const sale = pgTable("sales", {
     scale: 2,
   }),
   comments: text("comments"),
+  indication: text("indication"),
 })
 
 export const saleRelations = relations(sale, ({ one }) => ({
@@ -80,6 +89,8 @@ export const saleRelations = relations(sale, ({ one }) => ({
 
 export const captationTypeSchema = (params?: z.RawCreateParams) =>
   z.enum(captationTypes.enumValues, params)
+export const saleAreaSchema = (params?: z.RawCreateParams) =>
+  z.enum(saleArea.enumValues, params)
 export const userRoleSchmea = (params?: z.RawCreateParams) =>
   z.enum(userRoles.enumValues, params)
 
@@ -93,6 +104,7 @@ export const saleSchema = createSelectSchema(sale)
 export const newSaleSchema = createInsertSchema(sale)
 
 export type CaptationType = z.infer<ReturnType<typeof captationTypeSchema>>
+export type SaleArea = z.infer<ReturnType<typeof saleAreaSchema>>
 export type UserRole = z.infer<ReturnType<typeof userRoleSchmea>>
 
 export type User = z.infer<typeof userSchema>

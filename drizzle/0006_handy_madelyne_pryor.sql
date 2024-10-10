@@ -1,0 +1,1 @@
+ALTER TABLE "sales" ALTER COLUMN "sale_area" SET NOT NULL;

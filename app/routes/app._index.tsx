@@ -332,6 +332,11 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
     accessorKey: "campaign.name",
   },
   {
+    id: "saleArea",
+    header: "Área",
+    accessorKey: "saleArea",
+  },
+  {
     id: "isRepurchase",
     header: "Recompra?",
     accessorKey: "isRepurchase",
