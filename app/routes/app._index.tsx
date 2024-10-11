@@ -318,14 +318,19 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
     accessorKey: "date",
   },
   {
+    id: "seller",
+    header: "Vendedor",
+    accessorKey: "seller.name",
+  },
+  {
     id: "client",
     header: "Cliente",
     accessorKey: "client",
   },
   {
-    id: "seller",
-    header: "Vendedor",
-    accessorKey: "seller.name",
+    id: "adverseParty",
+    header: "Parte adversa",
+    accessorKey: "adverseParty",
   },
   {
     id: "campaign",
@@ -363,6 +368,11 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
     header: "Indicação",
     accessorKey: "indication",
   },
+  {
+    id: "comments",
+    header: "Observações",
+    accessorKey: "comments",
+  },
 ]
 
 function RecentSales() {
@@ -373,6 +383,8 @@ function RecentSales() {
     indication: false,
     captationType: false,
     isRepurchase: false,
+    saleArea: false,
+    comments: false,
   })
 
   const [sorting, setSorting] = useState<SortingState>([
