@@ -4,11 +4,12 @@ import {
   type LoaderFunctionArgs,
 } from "@remix-run/node"
 import { Link, Outlet, useLoaderData } from "@remix-run/react"
+import { KeyRound, LogOut, Menu } from "lucide-react"
 
 import { maxWidth } from "~/lib/utils"
 import { getUserOrRedirect } from "~/lib/authGuard"
 
-import { Button } from "~/components/ui"
+import { DropdownMenu } from "~/components/ui"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json(await getUserOrRedirect(request, "/login"))
@@ -30,9 +31,24 @@ export default function App() {
           Olá, {user.name}
         </strong>
 
-        <Button asChild variant="destructive" size="sm">
-          <Link to="/sign-out">sair</Link>
-        </Button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            <Menu />
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
+            <DropdownMenu.Item asChild>
+              <Link to="/trocasenha">
+                <KeyRound className="size-5" /> Trocar senha
+              </Link>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item asChild variant="danger">
+              <Link to="/sign-out">
+                <LogOut className="size-5" />
+                Sair
+              </Link>
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </nav>
       <hr className="border-primary-300" />
 
