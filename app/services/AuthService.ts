@@ -49,6 +49,16 @@ class AuthService {
     }
   }
 
+  async passwordMatches(id: string, password: string): Promise<boolean> {
+    const user = await db.query.user.findFirst({
+      where: (user, { eq }) => eq(user.id, id),
+    })
+
+    if (!user) return false
+
+    return await verifyPassword(password, user.passwordHash)
+  }
+
   async create(userInfo: NewUser): Promise<DomainUser> {
     const userExists = await db.query.user.findFirst({
       where: ({ name }, { eq }) => eq(name, userInfo.name),
@@ -74,6 +84,24 @@ class AuthService {
       id: createdUser.id,
       name: createdUser.name,
       role: createdUser.role,
+    }
+  }
+
+  async changePassword(id: string, newPassword: string) {
+    const hashedPassword = await encryptPassword(newPassword)
+
+    const [updated] = await db
+      .update(user)
+      .set({
+        passwordHash: hashedPassword,
+      })
+      .where(eq(user.id, id))
+      .returning()
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      role: updated.role,
     }
   }
 
