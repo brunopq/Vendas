@@ -41,7 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action: ActionFunction = async ({ request }) => {
   try {
-    const session = await getSession(request.headers.get("Cookie"))
+    const session = await getSession(request)
 
     const rawForm = Object.fromEntries(await request.formData())
 

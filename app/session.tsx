@@ -12,20 +12,27 @@ export type SessionData = {
   user: DomainUser
 }
 
-export const { commitSession, destroySession, getSession } =
-  createCookieSessionStorage<SessionData>({
-    cookie: {
-      name: "_session",
-      sameSite: "lax",
-      path: "/",
-      httpOnly: false,
-      secrets: [cookieSecret],
-      secure: process.env.NODE_ENV === "production",
-    },
-  })
+export const {
+  commitSession,
+  destroySession,
+  getSession: _getSession,
+} = createCookieSessionStorage<SessionData>({
+  cookie: {
+    name: "_session",
+    sameSite: "lax",
+    path: "/",
+    httpOnly: false,
+    secrets: [cookieSecret],
+    secure: process.env.NODE_ENV === "production",
+  },
+})
+
+export async function getSession(request: Request) {
+  return await _getSession(request.headers.get("Cookie"))
+}
 
 export async function getUser(request: Request): Promise<DomainUser | null> {
-  const session = await getSession(request.headers.get("Cookie"))
+  const session = await getSession(request)
 
   const user = session.get("user")
 
