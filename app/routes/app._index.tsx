@@ -450,7 +450,7 @@ function RecentSales() {
             {table.getHeaderGroups().map((group) =>
               group.headers.map((c) => (
                 <Table.Head
-                  onClick={c.column.getToggleSortingHandler()}
+                  onPointerDown={c.column.getToggleSortingHandler()}
                   key={c.id}
                   className="group cursor-pointer"
                 >
