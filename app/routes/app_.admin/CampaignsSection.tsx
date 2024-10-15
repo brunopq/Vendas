@@ -25,7 +25,7 @@ import {
   Dialog,
 } from "~/components/ui"
 
-import type { action, loader } from "./route"
+import { type action, type loader, getResult } from "./route"
 
 export function CampaignsSection() {
   const { campaigns } = useLoaderData<typeof loader>()
@@ -43,7 +43,7 @@ export function CampaignsSection() {
           </Dialog.Trigger>
 
           <Dialog.Content>
-            <NewSellTypeModal />
+            <NewCampaignModal />
           </Dialog.Content>
         </Dialog.Root>
       </header>
@@ -66,7 +66,7 @@ export function CampaignsSection() {
               <Table.Cell>{c.goal}</Table.Cell>
               <Table.Cell>{brl(c.prize)}</Table.Cell>
               <Table.Cell className="w-0">
-                <SellTypeDropdown id={c.id} />
+                <CampaignDropdown id={c.id} />
               </Table.Cell>
             </Table.Row>
           ))}
@@ -76,7 +76,7 @@ export function CampaignsSection() {
   )
 }
 
-function SellTypeDropdown({ id }: { id: string }) {
+function CampaignDropdown({ id }: { id: string }) {
   const fetcher = useFetcher({})
 
   return (
@@ -105,29 +105,31 @@ function SellTypeDropdown({ id }: { id: string }) {
   )
 }
 
-function NewSellTypeModal() {
+function NewCampaignModal() {
   const response = useActionData<typeof action>()
 
+  const newCampaignAction = getResult(response, "POST", "campaign")
+
   let errors: ErrorT[] = []
-  if (response && !response.ok) {
-    errors = response.error
+  if (newCampaignAction && !newCampaignAction.ok) {
+    errors = newCampaignAction.error
   }
 
   const [goal, setGoal] = useState<number>(0)
   const [prize, setPrize] = useState<number>(0)
 
   useEffect(() => {
-    if (!response) return
-    if (response.ok) {
+    if (!newCampaignAction) return
+    if (newCampaignAction.ok) {
       toast({ title: "Campanha registrada com sucesso!" })
-    } else if (response.error.find((e) => e.type === "backend")) {
+    } else if (newCampaignAction.error.find((e) => e.type === "backend")) {
       toast({
         title: "Erro desconhecido",
         description: "Não foi possível registrar nova campanha :(",
         variant: "destructive",
       })
     }
-  }, [response])
+  }, [newCampaignAction])
 
   return (
     <>
