@@ -5,6 +5,7 @@ import {
   useLoaderData,
 } from "@remix-run/react"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
+import React from "react"
 import { useEffect } from "react"
 
 import { toast } from "~/hooks/use-toast"
@@ -24,7 +25,7 @@ import {
   Checkbox,
 } from "~/components/ui"
 
-import type { action, loader } from "./route"
+import { getResult, type action, type loader } from "./route"
 
 export function UsersSection() {
   const { users } = useLoaderData<typeof loader>()
@@ -72,7 +73,11 @@ export function UsersSection() {
               </Table.Cell>
               <Table.Cell>{u.totalSales}</Table.Cell>
               <Table.Cell className="w-0">
-                <UserDropdown id={u.id} />
+                <UserDropdown
+                  id={u.id}
+                  name={u.name}
+                  isAdmin={u.role === "ADMIN"}
+                />
               </Table.Cell>
             </Table.Row>
           ))}
@@ -82,7 +87,13 @@ export function UsersSection() {
   )
 }
 
-function UserDropdown({ id }: { id: string }) {
+type UserDropdownProps = {
+  id: string
+  name: string
+  isAdmin: boolean
+}
+
+function UserDropdown({ id, name, isAdmin }: UserDropdownProps) {
   const fetcher = useFetcher({})
 
   return (
@@ -93,13 +104,15 @@ function UserDropdown({ id }: { id: string }) {
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
-        <DropdownMenu.Item>
-          <Edit className="size-5" />
-          Editar
-        </DropdownMenu.Item>
+        <EditUserModal {...{ id, name, isAdmin }}>
+          <DropdownMenu.Item onSelect={(e) => e.preventDefault()}>
+            <Edit className="size-5" />
+            Editar
+          </DropdownMenu.Item>
+        </EditUserModal>
         <DropdownMenu.Item
           onClick={() =>
-            fetcher.submit({ type: "user", id: id }, { method: "delete" })
+            fetcher.submit({ actionType: "user", id: id }, { method: "DELETE" })
           }
           variant="danger"
         >
@@ -111,62 +124,87 @@ function UserDropdown({ id }: { id: string }) {
   )
 }
 
+type BasicUserFormFieldsProps = {
+  user?: Partial<{
+    name: string
+    isAdmin: boolean
+  }>
+}
+
+function BasicUserFormFields({ user }: BasicUserFormFieldsProps) {
+  return (
+    <>
+      <FormGroup name="name" label="Nome">
+        {(removeError) => (
+          <Input
+            defaultValue={user?.name}
+            onInput={removeError}
+            name="name"
+            placeholder="Nome do usuário..."
+          />
+        )}
+      </FormGroup>
+      <FormGroup name="password" label="Senha">
+        {(removeError) => (
+          <Input
+            onInput={removeError}
+            name="password"
+            placeholder="Senha..."
+            type="password"
+          />
+        )}
+      </FormGroup>
+      <FormGroup
+        className="flex items-center gap-4"
+        name="role"
+        label="É administrador?"
+      >
+        {(removeError) => (
+          <Checkbox
+            defaultChecked={user?.isAdmin}
+            id="role"
+            name="role"
+            onInput={removeError}
+          />
+        )}
+      </FormGroup>
+    </>
+  )
+}
+
 function NewUserModal() {
   const response = useActionData<typeof action>()
 
+  const postUserAction = getResult(response, "POST", "user")
+
   let errors: ErrorT[] = []
-  if (response && !response.ok) {
-    errors = response.error
+  if (postUserAction && !postUserAction.ok) {
+    errors = postUserAction.error
   }
 
   useEffect(() => {
-    if (!response) return
-    if (response.ok) {
+    if (!postUserAction) return
+    if (postUserAction.ok) {
       toast({ title: "Usuário criado com sucesso!" })
-    } else if (response.error.find((e) => e.type === "backend")) {
+      console.log(postUserAction.value)
+    } else if (postUserAction.error.find((e) => e.type === "backend")) {
       toast({
         title: "Erro desconhecido",
         description: "Não foi possível criar o usuário :(",
         variant: "destructive",
       })
     }
-  }, [response])
+  }, [postUserAction])
 
   return (
     <Dialog.Content>
       <Dialog.Title>Novo usuário</Dialog.Title>
 
       <ErrorProvider initialErrors={errors}>
-        <Form method="post" className="flex flex-col gap-4">
+        <Form method="POST" className="flex flex-col gap-4">
           <input type="hidden" name="actionType" value="user" />
-          <FormGroup name="name" label="Nome">
-            {(removeError) => (
-              <Input
-                onInput={removeError}
-                name="name"
-                placeholder="Nome do usuário..."
-              />
-            )}
-          </FormGroup>
-          <FormGroup name="password" label="Senha">
-            {(removeError) => (
-              <Input
-                onInput={removeError}
-                name="password"
-                placeholder="Senha..."
-                type="password"
-              />
-            )}
-          </FormGroup>
-          <FormGroup
-            className="flex items-center gap-4"
-            name="role"
-            label="É administrador?"
-          >
-            {(removeError) => (
-              <Checkbox id="role" name="role" onInput={removeError} />
-            )}
-          </FormGroup>
+
+          <BasicUserFormFields />
 
           <Dialog.Footer className="mt-4">
             <Dialog.Close asChild>
@@ -179,5 +217,70 @@ function NewUserModal() {
         </Form>
       </ErrorProvider>
     </Dialog.Content>
+  )
+}
+
+type EditUserModalProps = {
+  children: React.ReactElement
+  id: string
+  name: string
+  isAdmin: boolean
+}
+
+function EditUserModal({ children, id, name, isAdmin }: EditUserModalProps) {
+  const fetcher = useFetcher<typeof action>({ key: React.useId() })
+  const response = fetcher.data
+
+  const putUserAction = getResult(response, "PUT", "user")
+
+  let errors: ErrorT[] = []
+  if (putUserAction && !putUserAction.ok) {
+    errors = putUserAction.error
+  }
+
+  useEffect(() => {
+    if (!putUserAction) return
+    if (putUserAction.ok) {
+      toast({ title: "Usuário editado!" })
+      console.log(putUserAction.value)
+    } else if (putUserAction.error.find((e) => e.type === "backend")) {
+      toast({
+        title: "Erro desconhecido",
+        description: "Não foi possível editar o usuário :(",
+        variant: "destructive",
+      })
+    }
+  }, [putUserAction])
+
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
+
+      <Dialog.Content>
+        <Dialog.Title>
+          Editar{" "}
+          <strong className="font-semibold text-primary-600">{name}</strong>
+        </Dialog.Title>
+
+        <fetcher.Form method="PUT" className="flex flex-col gap-4">
+          <input type="hidden" name="actionType" value="user" />
+          <input type="hidden" name="id" value={id} />
+
+          <BasicUserFormFields user={{ name, isAdmin }} />
+
+          <small className="mt-4 text-end text-zinc-600">
+            Se não fornecida, a senha não será alterada
+          </small>
+          <Dialog.Footer>
+            <Dialog.Close asChild>
+              <Button type="button" variant="ghost">
+                Cancelar
+              </Button>
+            </Dialog.Close>
+            <Button type="submit">Salvar alterações</Button>
+          </Dialog.Footer>
+        </fetcher.Form>
+      </Dialog.Content>
+    </Dialog.Root>
   )
 }
