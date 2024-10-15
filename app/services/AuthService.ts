@@ -8,6 +8,7 @@ import { eq, sql } from "drizzle-orm"
 export type DomainUser = Omit<User, "passwordHash">
 export type NewUser = Omit<DomainUser, "id"> & { password: string }
 export type LoginUser = Omit<DomainUser, "id" | "role"> & { password: string }
+export type UpdateUser = Partial<Omit<DomainUser, "id">>
 
 class AuthService {
   async index() {
@@ -94,6 +95,23 @@ class AuthService {
       .update(user)
       .set({
         passwordHash: hashedPassword,
+      })
+      .where(eq(user.id, id))
+      .returning()
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      role: updated.role,
+    }
+  }
+
+  async updateUser(id: string, fields: UpdateUser) {
+    const [updated] = await db
+      .update(user)
+      .set({
+        name: fields.name,
+        role: fields.role,
       })
       .where(eq(user.id, id))
       .returning()
