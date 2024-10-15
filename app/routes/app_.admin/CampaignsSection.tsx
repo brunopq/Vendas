@@ -93,7 +93,10 @@ function CampaignDropdown({ id }: { id: string }) {
         </DropdownMenu.Item>
         <DropdownMenu.Item
           onClick={() =>
-            fetcher.submit({ type: "campaign", id: id }, { method: "delete" })
+            fetcher.submit(
+              { actionType: "campaign", id: id },
+              { method: "delete" },
+            )
           }
           variant="danger"
         >
