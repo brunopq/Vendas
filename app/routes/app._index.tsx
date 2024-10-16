@@ -11,6 +11,7 @@ import {
   type ColumnDef,
   type VisibilityState,
 } from "@tanstack/react-table"
+import { format, parse } from "date-fns"
 import { z } from "zod"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
@@ -316,6 +317,11 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
     id: "date",
     header: "Data",
     accessorKey: "date",
+    cell: ({ cell }) =>
+      format(
+        parse(String(cell.getValue()), "yyyy-MM-dd", new Date()),
+        "dd/MM/yyyy",
+      ),
   },
   {
     id: "seller",
