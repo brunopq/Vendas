@@ -148,7 +148,7 @@ class SalesService {
     }
 
     const campaignDate = new Date(campaign.month)
-    const saleDate = new Date(newSale.date) // TODO: remove defaultNow from sale schema
+    const saleDate = new Date(newSale.date)
 
     if (
       campaignDate.getUTCFullYear() !== saleDate.getUTCFullYear() ||

@@ -57,7 +57,7 @@ export const campaignRelations = relations(campaign, ({ many }) => ({
 
 export const sale = pgTable("sales", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
-  date: date("date").defaultNow().notNull(),
+  date: date("date").notNull(),
   seller: char("seller", { length: idLength })
     .references(() => user.id)
     .notNull(),
