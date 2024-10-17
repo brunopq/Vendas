@@ -1,4 +1,8 @@
 import * as d3 from "d3"
+import { useCallback, useEffect, useState } from "react"
+import { createPortal } from "react-dom"
+import { ClientOnly } from "remix-utils/client-only"
+import { cn } from "~/lib/utils"
 
 type HorizontalBarChartProps<T extends { id: string }> = {
   data: T[]
@@ -6,6 +10,7 @@ type HorizontalBarChartProps<T extends { id: string }> = {
   name: (item: T) => string
   markerFormat: (m: number) => string
   markers?: number[]
+  renderTooltip?: (item: T) => JSX.Element
   w?: number
   h?: number
   m?: number
@@ -28,10 +33,15 @@ export function HorizontalBarChart<T extends { id: string }>({
   markerFormat,
   color,
   colorStops,
+  renderTooltip,
   w = 100,
   h = 100,
   m = 0,
 }: HorizontalBarChartProps<T>) {
+  const [tooltipVisible, setTooltipVisible] = useState(false)
+  // biome-ignore lint/complexity/noUselessFragments: not useless
+  const [tooltipContent, setTooltipContent] = useState(<></>)
+
   const x = d3
     .scaleLinear()
     // biome-ignore lint/style/noNonNullAssertion:
@@ -63,6 +73,7 @@ export function HorizontalBarChart<T extends { id: string }>({
       c: c,
       name: name(d),
       value: value(d),
+      item: d,
     }
   })
 
@@ -73,13 +84,29 @@ export function HorizontalBarChart<T extends { id: string }>({
     }
   })
 
+  const handlePointerOver = (item: T) => {
+    if (!renderTooltip) {
+      return
+    }
+    setTooltipVisible(true)
+    setTooltipContent(renderTooltip(item))
+  }
+
+  const handlePointerOut = () => {
+    setTooltipVisible(false)
+  }
+
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="overflow-visible">
       <title>hello</title>
 
+      {<Tooltip open={tooltipVisible}>{tooltipContent}</Tooltip>}
+
       {bars.map((b) => (
         <g fill={`color-mix(in srgb, ${b.c} 30%, black)`} key={b.id}>
           <rect
+            onPointerOver={() => handlePointerOver(b.item)}
+            onPointerOut={handlePointerOut}
             className="rounded"
             rx="1px"
             x={b.x}
@@ -90,6 +117,8 @@ export function HorizontalBarChart<T extends { id: string }>({
           />
 
           <text
+            onPointerOver={() => handlePointerOver(b.item)}
+            onPointerOut={handlePointerOut}
             x={0}
             y={b.y + y.bandwidth() / 2}
             fontSize="30%"
@@ -98,23 +127,11 @@ export function HorizontalBarChart<T extends { id: string }>({
           >
             {b.name}
           </text>
-
-          {/* <text
-            x={b.w}
-            y={b.y + y.bandwidth() / 2}
-            dominantBaseline="middle"
-            textAnchor="end"
-            // x={(b.x || 0) + y.bandwidth() / 2}
-            // y={h - b.h}
-            // dy="-0.125em"
-            fontSize="50%"
-            fontWeight={600}
-          >{b.value}</text> */}
         </g>
       ))}
 
       {marks.map((m) => (
-        <g key={m.label}>
+        <g key={m.label} className="pointer-events-none">
           <line
             x1={m.x}
             x2={m.x}
@@ -131,5 +148,51 @@ export function HorizontalBarChart<T extends { id: string }>({
         </g>
       ))}
     </svg>
+  )
+}
+
+function Tooltip({ children, open }: { children: JSX.Element; open: boolean }) {
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+
+  const handleUpdate = useCallback(
+    (e: MouseEvent) => {
+      if (open) {
+        setPos({
+          x: e.pageX,
+          y: e.pageY,
+        })
+      }
+    },
+    [open],
+  )
+
+  useEffect(() => {
+    window.addEventListener("mousemove", handleUpdate)
+
+    return () => window.removeEventListener("mousemove", handleUpdate)
+  }, [handleUpdate])
+
+  return (
+    <ClientOnly>
+      {() =>
+        createPortal(
+          <div
+            data-open={open}
+            className={cn(
+              "-translate-x-1/2 pointer-events-none absolute z-20 rounded border border-zinc-300 bg-zinc-100/50 p-2 backdrop-blur-lg",
+              "-translate-y-[calc(100%-0.25rem)] data-[open=true]:-translate-y-[calc(100%+0.5rem)] scale-90 opacity-0 transition-[opacity,transform] data-[open=true]:scale-100 data-[open=true]:opacity-100",
+            )}
+            style={{
+              left: `${pos.x}px`,
+              top: `${pos.y}px`,
+            }}
+          >
+            {children}
+          </div>,
+          // biome-ignore lint/style/noNonNullAssertion: <explanation>
+          document.getElementById("portal")!,
+        )
+      }
+    </ClientOnly>
   )
 }
