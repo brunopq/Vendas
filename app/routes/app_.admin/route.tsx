@@ -21,6 +21,7 @@ import type { ErrorT } from "~/context/ErrorsContext"
 
 import { UsersSection } from "./UsersSection"
 import { CampaignsSection } from "./CampaignsSection"
+import { months, monthSchema } from "~/constants/months"
 
 export const meta: MetaFunction = () => [
   {
@@ -45,6 +46,14 @@ const campaignSchema = z.object({
   prize: z
     .string({ required_error: "Insira um valor para a meta" })
     .regex(/^\d+(\.\d{1,2})?$/, "O valor deve estar no formato correto"),
+  month: monthSchema({
+    required_error: "Insira um mês",
+    invalid_type_error: "Mês inválido",
+  }),
+  year: z.literal(2024, {
+    required_error: "Selecione o ano",
+    invalid_type_error: "Ano inválido",
+  }),
 })
 
 async function handleNewUser(data: Record<string, unknown>) {
@@ -80,9 +89,20 @@ async function handleNewCampaign(data: Record<string, unknown>) {
     data.prize = currencyToNumeric(String(data.prize))
   }
 
+  if (data.year) {
+    data.year = Number(data.year)
+  }
+
   const parsed = campaignSchema.parse(data)
 
-  return await CampaignService.create(parsed)
+  return await CampaignService.create({
+    ...parsed,
+    month: new Date(
+      parsed.year,
+      months.findIndex((m) => m === parsed.month),
+      1,
+    ).toDateString(),
+  })
 }
 
 async function handleDeleteUser(data: Record<string, unknown>) {
@@ -118,6 +138,7 @@ async function handle<const M, const T, Res>(
       result = error(errors)
     } else {
       result = error([{ type: "backend", message: "unknown backend error" }])
+      console.log(e)
     }
   }
 

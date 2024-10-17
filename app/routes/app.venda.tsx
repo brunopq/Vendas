@@ -14,6 +14,7 @@ import {
 import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
 import { z } from "zod"
+import { ptBR } from "date-fns/locale"
 
 import { captationTypeSchema, saleAreaSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
@@ -38,6 +39,7 @@ import {
 } from "~/components/ui"
 
 import FormGroup from "~/components/FormGroup"
+import { format, parse } from "date-fns"
 
 export const meta: MetaFunction = () => [
   {
@@ -200,6 +202,15 @@ export default function Venda() {
                 {campaigns.map((c) => (
                   <Select.Item key={c.id} value={c.id}>
                     {c.name}
+                    <small className="ml-2 text-xs text-zinc-600">
+                      {format(
+                        parse(c.month, "yyyy-MM-dd", new Date()),
+                        "MMM, yyyy",
+                        {
+                          locale: ptBR,
+                        },
+                      )}
+                    </small>
                   </Select.Item>
                 ))}
               </Select.Content>

@@ -6,6 +6,8 @@ import {
 } from "@remix-run/react"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { ptBR } from "date-fns/locale"
+import { format, parse } from "date-fns"
 
 import { toast } from "~/hooks/use-toast"
 
@@ -23,9 +25,11 @@ import {
   DropdownMenu,
   Table,
   Dialog,
+  Select,
 } from "~/components/ui"
 
 import { type action, type loader, getResult } from "./route"
+import { months } from "~/constants/months"
 
 export function CampaignsSection() {
   const { campaigns } = useLoaderData<typeof loader>()
@@ -53,6 +57,7 @@ export function CampaignsSection() {
           <Table.Row>
             <Table.Head className="w-0">Id</Table.Head>
             <Table.Head>Nome</Table.Head>
+            <Table.Head>Mês</Table.Head>
             <Table.Head>Meta de vendas</Table.Head>
             <Table.Head>Comissão</Table.Head>
             <Table.Head className="w-0">{/*dropdown*/}</Table.Head>
@@ -63,6 +68,13 @@ export function CampaignsSection() {
             <Table.Row key={c.id}>
               <Table.Cell className="text-sm text-zinc-600">{c.id}</Table.Cell>
               <Table.Cell>{c.name}</Table.Cell>
+              <Table.Cell>
+                {format(
+                  parse(c.month, "yyyy-MM-dd", new Date()),
+                  "MMMM, yyyy",
+                  { locale: ptBR },
+                )}
+              </Table.Cell>
               <Table.Cell>{c.goal}</Table.Cell>
               <Table.Cell>{brl(c.prize)}</Table.Cell>
               <Table.Cell className="w-0">
@@ -150,6 +162,43 @@ function NewCampaignModal() {
               />
             )}
           </FormGroup>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormGroup name="month" label="Mês de vigência">
+              {(removeErrors) => (
+                <Select.Root onValueChange={removeErrors} name="month">
+                  <Select.Trigger>
+                    <Select.Value placeholder="Selecione" />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {months.map((m) => (
+                      <Select.Item value={m} key={m}>
+                        {m}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+              )}
+            </FormGroup>
+
+            <FormGroup name="year" label="Ano de vigência">
+              {(removeErrors) => (
+                <Select.Root onValueChange={removeErrors} name="year">
+                  <Select.Trigger>
+                    <Select.Value placeholder="Selecione" />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {[2024].map((a) => (
+                      <Select.Item value={a.toString()} key={a}>
+                        {a}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Root>
+              )}
+            </FormGroup>
+          </div>
+
           <FormGroup name="goal" label="Meta principal">
             {(removeError) => (
               <Input
