@@ -38,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Toaster />
         <ScrollRestoration />
         <Scripts />
+        <div id="portal" />
       </body>
     </html>
   )

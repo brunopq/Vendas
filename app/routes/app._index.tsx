@@ -114,7 +114,7 @@ export default function App() {
 
         <div className="grid grid-cols-6 gap-4">
           <div className="col-span-2 row-span-2 flex flex-col items-center justify-between gap-6 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
-            <h3>Campanhas</h3>
+            <h3 className="col-span-2 text-lg">Campanhas</h3>
 
             <PieChart
               data={Object.entries(salesByCampaign).map(([k, v]) => ({
@@ -155,6 +155,26 @@ export default function App() {
                     "var(--color-teal-300)",
                     "var(--color-teal-600)",
                   ]}
+                  renderTooltip={(item) => (
+                    <>
+                      <p className="flex items-center justify-between gap-2">
+                        {item.campaign.name}
+                        <strong className=" text-primary-700">
+                          {Math.round(
+                            (item.sellCount / item.campaign.goal) * 100,
+                          )}
+                          %
+                        </strong>
+                      </p>
+                      <p className="text-sm">
+                        Vendas: {item.sellCount} / {item.campaign.goal}
+                      </p>
+                      <p className="text-sm">
+                        Comissão: {brl(item.comission)} /{" "}
+                        {brl(item.campaign.prize)}
+                      </p>
+                    </>
+                  )}
                 />
               )}
             </div>
