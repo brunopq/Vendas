@@ -9,12 +9,14 @@ import {
   json,
   Link,
   useActionData,
+  useFetcher,
   useLoaderData,
 } from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
 import { z } from "zod"
-import { ptBR } from "date-fns/locale"
+import { format, isValid, parse } from "date-fns"
+import { utc } from "@date-fns/utc"
 
 import { captationTypeSchema, saleAreaSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
@@ -39,7 +41,6 @@ import {
 } from "~/components/ui"
 
 import FormGroup from "~/components/FormGroup"
-import { format, parse } from "date-fns"
 
 export const meta: MetaFunction = () => [
   {
@@ -79,9 +80,22 @@ const formSchema = z.object({
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getUserOrRedirect(request)
 
-  const campaigns = await CampaignService.index()
+  const urlDate = new URL(request.url).searchParams.get("date")
 
-  return json(campaigns)
+  let date: Date | null = null
+  if (urlDate) {
+    date = parse(urlDate, "yyyy-MM-dd", new Date())
+  }
+  if (!date || !isValid(date)) {
+    date = new Date()
+  }
+
+  const campaigns = await CampaignService.getByMonth(
+    date.getUTCMonth() + 1,
+    date.getUTCFullYear(),
+  )
+
+  return json({ campaigns, date })
 }
 
 type ActionResponse = Result<DomainSale, ErrorT[]>
@@ -132,8 +146,13 @@ export const action = async ({
 }
 
 export default function Venda() {
-  const campaigns = useLoaderData<typeof loader>()
+  let { campaigns, date } = useLoaderData<typeof loader>()
   const response = useActionData<typeof action>()
+  const fetcher = useFetcher<typeof loader>()
+  if (fetcher.data) {
+    campaigns = fetcher.data.campaigns
+    date = fetcher.data.date
+  }
 
   let errors: ErrorT[] = []
   if (response && !response.ok) {
@@ -202,15 +221,6 @@ export default function Venda() {
                 {campaigns.map((c) => (
                   <Select.Item key={c.id} value={c.id}>
                     {c.name}
-                    <small className="ml-2 text-xs text-zinc-600">
-                      {format(
-                        parse(c.month, "yyyy-MM-dd", new Date()),
-                        "MMM, yyyy",
-                        {
-                          locale: ptBR,
-                        },
-                      )}
-                    </small>
                   </Select.Item>
                 ))}
               </Select.Content>
@@ -286,7 +296,24 @@ export default function Venda() {
         </FormGroup>
 
         <FormGroup name="date" label="Data da venda">
-          <Input name="date" id="date" type="date" />
+          {(removeErrors) => (
+            <Input
+              value={format(date, "yyyy-MM-dd")}
+              onChange={(e) => {
+                removeErrors()
+                const date = e.target.valueAsDate
+                console.log(date)
+                if (!date) return
+                fetcher.submit(
+                  { date: format(date, "yyyy-MM-dd", { in: utc }) },
+                  { method: "GET" },
+                )
+              }}
+              name="date"
+              id="date"
+              type="date"
+            />
+          )}
         </FormGroup>
 
         <FormGroup name="indication" label="Indicado por:">
