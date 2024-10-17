@@ -7,6 +7,7 @@ import {
   boolean,
   numeric,
   integer,
+  interval,
 } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 import { customAlphabet } from "nanoid"
@@ -47,6 +48,7 @@ export const campaign = pgTable("campaigns", {
   name: text("name").notNull().unique(),
   goal: integer("goal").notNull(),
   prize: numeric("prize", { precision: 16, scale: 2 }).notNull(),
+  month: date("month").defaultNow().notNull(),
 })
 
 export const campaignRelations = relations(campaign, ({ many }) => ({
