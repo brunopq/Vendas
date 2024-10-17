@@ -1,4 +1,4 @@
-import { endOfMonth, startOfMonth } from "date-fns"
+import { endOfMonth, isSameMonth, startOfMonth } from "date-fns"
 import { between, eq, sql } from "drizzle-orm"
 
 import { db } from "~/db"
@@ -9,6 +9,7 @@ import type {
   CaptationType as DbCaptationType,
 } from "~/db/schema"
 import CampaignService from "./CampaignService"
+import { utc } from "@date-fns/utc"
 
 export type DomainSale = DbSale
 export type NewSale = DbNewSale
@@ -150,10 +151,7 @@ class SalesService {
     const campaignDate = new Date(campaign.month)
     const saleDate = new Date(newSale.date)
 
-    if (
-      campaignDate.getUTCFullYear() !== saleDate.getUTCFullYear() ||
-      campaignDate.getUTCMonth() !== saleDate.getUTCMonth()
-    ) {
+    if (!isSameMonth(campaignDate, saleDate, { in: utc })) {
       throw new Error("campaign is not the same month as the sale")
     }
 
