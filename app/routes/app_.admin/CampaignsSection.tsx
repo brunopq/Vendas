@@ -39,17 +39,16 @@ export function CampaignsSection() {
       <header className="mb-4 flex items-center justify-between gap-2">
         <h2 className="font-medium text-2xl">Campanhas e metas</h2>
 
-        <Dialog.Root>
-          <Dialog.Trigger asChild>
+        <div className="flex items-center justify-between gap-2">
+          <CopyCampaignsModal>
+            <Button variant="ghost">Copiar campanhas</Button>
+          </CopyCampaignsModal>
+          <NewCampaignModal>
             <Button icon="left" className="text-sm">
               <Plus /> Novo
             </Button>
-          </Dialog.Trigger>
-
-          <Dialog.Content>
-            <NewCampaignModal />
-          </Dialog.Content>
-        </Dialog.Root>
+          </NewCampaignModal>
+        </div>
       </header>
 
       <Table.Root>
@@ -120,7 +119,124 @@ function CampaignDropdown({ id }: { id: string }) {
   )
 }
 
-function NewCampaignModal() {
+function CopyCampaignsModal({ children }: { children: JSX.Element }) {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
+
+      <Dialog.Content className="[--dialog-content-max-width:_32rem]">
+        <Dialog.Header>
+          <Dialog.Title>Copiar campanhas</Dialog.Title>
+          <Dialog.Description>
+            Copie todas as campanhas de um mês para o outro, sem precisar
+            criá-las manualmente
+          </Dialog.Description>
+        </Dialog.Header>
+
+        <Form>
+          <div className="grid gap-x-2 gap-y-4 sm:grid-cols-[1fr_1fr_auto]">
+            <div className="col-span-full grid grid-cols-subgrid items-end gap-y-1">
+              <span className="col-span-full">Origem:</span>
+              <FormGroup name="originMonth" label="Mês">
+                {(removeErrors) => (
+                  <Select.Root name="originMonth" onValueChange={removeErrors}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Selecione..." />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {months.map((m) => (
+                        <Select.Item value={m} key={m}>
+                          {m}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </FormGroup>
+
+              <FormGroup name="originYear" label="Ano">
+                {(removeErrors) => (
+                  <Select.Root name="originYear" onValueChange={removeErrors}>
+                    <Select.Trigger>
+                      <Select.Value placeholder="Selecione..." />
+                    </Select.Trigger>
+
+                    <Select.Content>
+                      {[2024].map((y) => (
+                        <Select.Item value={y.toString()} key={y}>
+                          {y}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </FormGroup>
+
+              <span>0 campanhas</span>
+            </div>
+
+            <div className="col-span-full grid grid-cols-subgrid items-end gap-y-1">
+              <span className="col-span-full">Destino:</span>
+              <FormGroup name="destinationMonth" label="Mês">
+                {(removeErrors) => (
+                  <Select.Root
+                    name="destinationMonth"
+                    onValueChange={removeErrors}
+                  >
+                    <Select.Trigger>
+                      <Select.Value placeholder="Selecione..." />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {months.map((m) => (
+                        <Select.Item value={m} key={m}>
+                          {m}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </FormGroup>
+
+              <FormGroup name="destinationYear" label="Ano">
+                {(removeErrors) => (
+                  <Select.Root
+                    name="destinationYear"
+                    onValueChange={removeErrors}
+                  >
+                    <Select.Trigger>
+                      <Select.Value placeholder="Selecione..." />
+                    </Select.Trigger>
+
+                    <Select.Content>
+                      {[2024].map((y) => (
+                        <Select.Item value={y.toString()} key={y}>
+                          {y}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </FormGroup>
+
+              <span>0 campanhas</span>
+            </div>
+          </div>
+
+          <Dialog.Footer className="mt-8">
+            <Dialog.Close asChild>
+              <Button type="button" variant="ghost">
+                Cancelar
+              </Button>
+            </Dialog.Close>
+            <Button type="submit">Copiar</Button>
+          </Dialog.Footer>
+        </Form>
+      </Dialog.Content>
+    </Dialog.Root>
+  )
+}
+
+function NewCampaignModal({ children }: { children: JSX.Element }) {
   const response = useActionData<typeof action>()
 
   const newCampaignAction = getResult(response, "POST", "campaign")
@@ -147,121 +263,125 @@ function NewCampaignModal() {
   }, [newCampaignAction])
 
   return (
-    <>
-      <Dialog.Title>Nova campanha</Dialog.Title>
+    <Dialog.Root>
+      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
 
-      <ErrorProvider initialErrors={errors}>
-        <Form method="post" className="flex flex-col gap-4">
-          <input type="hidden" name="actionType" value="campaign" />
-          <FormGroup name="name" label="Nome da campanha">
-            {(removeError) => (
-              <Input
-                onInput={removeError}
-                name="name"
-                placeholder="Categoria..."
-              />
-            )}
-          </FormGroup>
+      <Dialog.Content>
+        <Dialog.Title>Nova campanha</Dialog.Title>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormGroup name="month" label="Mês de vigência">
-              {(removeErrors) => (
-                <Select.Root onValueChange={removeErrors} name="month">
-                  <Select.Trigger>
-                    <Select.Value placeholder="Selecione" />
-                  </Select.Trigger>
-                  <Select.Content>
-                    {months.map((m) => (
-                      <Select.Item value={m} key={m}>
-                        {m}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Root>
+        <ErrorProvider initialErrors={errors}>
+          <Form method="post" className="flex flex-col gap-4">
+            <input type="hidden" name="actionType" value="campaign" />
+            <FormGroup name="name" label="Nome da campanha">
+              {(removeError) => (
+                <Input
+                  onInput={removeError}
+                  name="name"
+                  placeholder="Categoria..."
+                />
               )}
             </FormGroup>
 
-            <FormGroup name="year" label="Ano de vigência">
-              {(removeErrors) => (
-                <Select.Root onValueChange={removeErrors} name="year">
-                  <Select.Trigger>
-                    <Select.Value placeholder="Selecione" />
-                  </Select.Trigger>
-                  <Select.Content>
-                    {[2024].map((a) => (
-                      <Select.Item value={a.toString()} key={a}>
-                        {a}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Root>
+            <div className="grid grid-cols-2 gap-4">
+              <FormGroup name="month" label="Mês de vigência">
+                {(removeErrors) => (
+                  <Select.Root onValueChange={removeErrors} name="month">
+                    <Select.Trigger>
+                      <Select.Value placeholder="Selecione" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {months.map((m) => (
+                        <Select.Item value={m} key={m}>
+                          {m}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </FormGroup>
+
+              <FormGroup name="year" label="Ano de vigência">
+                {(removeErrors) => (
+                  <Select.Root onValueChange={removeErrors} name="year">
+                    <Select.Trigger>
+                      <Select.Value placeholder="Selecione" />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {[2024].map((a) => (
+                        <Select.Item value={a.toString()} key={a}>
+                          {a}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </FormGroup>
+            </div>
+
+            <FormGroup name="goal" label="Meta principal">
+              {(removeError) => (
+                <Input
+                  onInput={(e) => {
+                    removeError()
+                    if (!Number.isNaN(e.currentTarget.valueAsNumber)) {
+                      setGoal(e.currentTarget.valueAsNumber)
+                    }
+                  }}
+                  value={goal}
+                  name="goal"
+                  placeholder="Meta..."
+                  type="number"
+                  min={0}
+                />
               )}
             </FormGroup>
-          </div>
+            <FormGroup name="prize" label="Comissão">
+              {(removeError) => (
+                <BrlInput
+                  onInput={(e) => {
+                    removeError()
+                    setPrize(currencyToNumber(e.currentTarget.value))
+                  }}
+                  name="prize"
+                />
+              )}
+            </FormGroup>
 
-          <FormGroup name="goal" label="Meta principal">
-            {(removeError) => (
-              <Input
-                onInput={(e) => {
-                  removeError()
-                  if (!Number.isNaN(e.currentTarget.valueAsNumber)) {
-                    setGoal(e.currentTarget.valueAsNumber)
-                  }
-                }}
-                value={goal}
-                name="goal"
-                placeholder="Meta..."
-                type="number"
-                min={0}
-              />
-            )}
-          </FormGroup>
-          <FormGroup name="prize" label="Comissão">
-            {(removeError) => (
-              <BrlInput
-                onInput={(e) => {
-                  removeError()
-                  setPrize(currencyToNumber(e.currentTarget.value))
-                }}
-                name="prize"
-              />
-            )}
-          </FormGroup>
+            <div className="mt-2 grid grid-cols-3 text-sm">
+              <strong className="col-span-3 mb-1 text-base">Metas: </strong>
 
-          <div className="mt-2 grid grid-cols-3 text-sm">
-            <strong className="col-span-3 mb-1 text-base">Metas: </strong>
+              <span className="text-zinc-600">Meta</span>
+              <span className="text-zinc-600">N. de vendas</span>
+              <span className="text-zinc-600">Comissão</span>
 
-            <span className="text-zinc-600">Meta</span>
-            <span className="text-zinc-600">N. de vendas</span>
-            <span className="text-zinc-600">Comissão</span>
+              <span>50%</span>
+              <span>{Math.round(goal * 0.5)}</span>
+              <span>{brl(prize * 0.5)}</span>
 
-            <span>50%</span>
-            <span>{Math.round(goal * 0.5)}</span>
-            <span>{brl(prize * 0.5)}</span>
+              <span>75%</span>
+              <span>{Math.round(goal * 0.75)}</span>
+              <span>{brl(prize * 0.75)}</span>
 
-            <span>75%</span>
-            <span>{Math.round(goal * 0.75)}</span>
-            <span>{brl(prize * 0.75)}</span>
+              <span>100%</span>
+              <span>{Math.round(goal * 1)}</span>
+              <span>{brl(prize * 1)}</span>
 
-            <span>100%</span>
-            <span>{Math.round(goal * 1)}</span>
-            <span>{brl(prize * 1)}</span>
+              <span>110%</span>
+              <span>{Math.round(goal * 1.1)}</span>
+              <span>{brl(prize * 1.1)}</span>
+            </div>
 
-            <span>110%</span>
-            <span>{Math.round(goal * 1.1)}</span>
-            <span>{brl(prize * 1.1)}</span>
-          </div>
-
-          <Dialog.Footer className="mt-4">
-            <Dialog.Close asChild>
-              <Button type="button" variant="ghost">
-                Cancelar
-              </Button>
-            </Dialog.Close>
-            <Button type="submit">Criar</Button>
-          </Dialog.Footer>
-        </Form>
-      </ErrorProvider>
-    </>
+            <Dialog.Footer className="mt-4">
+              <Dialog.Close asChild>
+                <Button type="button" variant="ghost">
+                  Cancelar
+                </Button>
+              </Dialog.Close>
+              <Button type="submit">Criar</Button>
+            </Dialog.Footer>
+          </Form>
+        </ErrorProvider>
+      </Dialog.Content>
+    </Dialog.Root>
   )
 }

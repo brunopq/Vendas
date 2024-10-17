@@ -241,6 +241,8 @@ export default function Admin() {
       <UsersSection />
 
       <CampaignsSection />
+
+      <footer className="mt-16 py-16" />
     </>
   )
 }
