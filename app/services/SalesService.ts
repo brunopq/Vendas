@@ -8,6 +8,7 @@ import type {
   NewSale as DbNewSale,
   CaptationType as DbCaptationType,
 } from "~/db/schema"
+import CampaignService from "./CampaignService"
 
 export type DomainSale = DbSale
 export type NewSale = DbNewSale
@@ -15,15 +16,15 @@ export { newSaleSchema }
 
 export type CaptationType = DbCaptationType
 
-class SalesService {
-  private validateDate(month: number, year: number): Date {
-    if (month < 1 || month > 12 || year < 2000) {
-      throw new Error("date out of range")
-    }
-
-    return new Date(year, month - 1)
+function validateDate(month: number, year: number): Date {
+  if (month < 1 || month > 12 || year < 2000) {
+    throw new Error("date out of range")
   }
 
+  return new Date(year, month - 1)
+}
+
+class SalesService {
   async index() {
     return await db.query.sale.findMany({
       with: {
@@ -40,7 +41,7 @@ class SalesService {
   }
 
   async getByMonth(month: number, year: number) {
-    const date = this.validateDate(month, year)
+    const date = validateDate(month, year)
 
     return await db.query.sale.findMany({
       where: (sales, { between }) =>
@@ -57,7 +58,7 @@ class SalesService {
   }
 
   async getByMonthAndUser(month: number, year: number, userId: string) {
-    const date = this.validateDate(month, year)
+    const date = validateDate(month, year)
 
     return await db.query.sale.findMany({
       where: (sales, { between, and, eq }) =>
@@ -77,7 +78,7 @@ class SalesService {
   }
 
   async getNewClientsByMonth(month: number, year: number) {
-    const date = this.validateDate(month, year)
+    const date = validateDate(month, year)
 
     return await db.query.sale.findMany({
       where: (sales, { between, and, eq }) =>
@@ -97,7 +98,7 @@ class SalesService {
   }
 
   async getCommissionsByMonth(month: number, year: number) {
-    const date = this.validateDate(month, year)
+    const date = validateDate(month, year)
 
     const comissions = await db
       .select({
@@ -140,6 +141,22 @@ class SalesService {
   }
 
   async create(newSale: NewSale) {
+    const campaign = await CampaignService.getById(newSale.campaign)
+
+    if (!campaign) {
+      throw new Error("invalid campaign id")
+    }
+
+    const campaignDate = new Date(campaign.month)
+    const saleDate = new Date(newSale.date) // TODO: remove defaultNow from sale schema
+
+    if (
+      campaignDate.getUTCFullYear() !== saleDate.getUTCFullYear() ||
+      campaignDate.getUTCMonth() !== saleDate.getUTCMonth()
+    ) {
+      throw new Error("campaign is not the same month as the sale")
+    }
+
     const [createdSale] = await db.insert(sale).values(newSale).returning()
 
     return createdSale
