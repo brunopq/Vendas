@@ -14,6 +14,8 @@ import {
 import { format, parse } from "date-fns"
 import { z } from "zod"
 
+import { months } from "~/constants/months"
+
 import { getUserOrRedirect } from "~/lib/authGuard"
 import { brl } from "~/lib/formatters"
 import { cn } from "~/lib/utils"
@@ -291,20 +293,7 @@ function DateSelection() {
           <Select.Value placeholder="Trocar mês" />
         </Select.Trigger>
         <Select.Content className="max-h-64">
-          {[
-            "Janeiro",
-            "Fevereiro",
-            "Março",
-            "Abril",
-            "Maio",
-            "Junho",
-            "Julho",
-            "Agosto",
-            "Setembro",
-            "Outubro",
-            "Novembro",
-            "Dezembro",
-          ].map((m, i) => (
+          {months.map((m, i) => (
             <Select.Item key={m} value={`${i + 1}`}>
               {m}
             </Select.Item>
