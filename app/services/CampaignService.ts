@@ -8,8 +8,8 @@ import {
   type NewCampaign as DbNewCampaign,
 } from "~/db/schema"
 
-type DomainCampaign = Campaign
-type NewCampaign = DbNewCampaign
+export type DomainCampaign = Campaign
+export type NewCampaign = DbNewCampaign
 
 function validateDate(month: number, year: number): Date {
   if (month < 1 || month > 12 || year < 2000) {

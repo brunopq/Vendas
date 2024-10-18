@@ -30,17 +30,9 @@ import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
 import { toast } from "~/hooks/use-toast"
 
-import {
-  Button,
-  Checkbox,
-  Select,
-  Input,
-  BrlInput,
-  Textarea,
-  RadioGroup,
-} from "~/components/ui"
+import { Button } from "~/components/ui"
 
-import FormGroup from "~/components/FormGroup"
+import SaleFormFields from "~/components/SaleFormFields"
 
 export const meta: MetaFunction = () => [
   {
@@ -185,152 +177,14 @@ export default function Venda() {
       </header>
 
       <Form method="post" className="mt-8 grid gap-x-4 gap-y-6 sm:grid-cols-4">
-        <FormGroup className="col-span-2" name="client" label="Cliente">
-          {(removeErrors) => (
-            <Input
-              name="client"
-              id="client"
-              placeholder="Nome do cliente"
-              onInput={removeErrors}
-            />
-          )}
-        </FormGroup>
-
-        <FormGroup
-          className="col-span-2"
-          name="adverseParty"
-          label="Parte adversa"
-        >
-          {(removeErrors) => (
-            <Input
-              onInput={removeErrors}
-              name="adverseParty"
-              id="adverseParty"
-              placeholder="Parte adversa"
-            />
-          )}
-        </FormGroup>
-
-        <FormGroup name="campaign" label="Campanha">
-          {(removeErrors) => (
-            <Select.Root onValueChange={removeErrors} name="campaign">
-              <Select.Trigger>
-                <Select.Value placeholder="Selecione..." />
-              </Select.Trigger>
-              <Select.Content>
-                {campaigns.map((c) => (
-                  <Select.Item key={c.id} value={c.id}>
-                    {c.name}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
-          )}
-        </FormGroup>
-
-        <FormGroup name="saleArea" label="Área">
-          {(removeErrors) => (
-            <Select.Root onValueChange={removeErrors} name="saleArea">
-              <Select.Trigger>
-                <Select.Value placeholder="Selecione..." />
-              </Select.Trigger>
-              <Select.Content>
-                {saleAreaSchema().options.map((area) => (
-                  <Select.Item key={area} value={area}>
-                    {area}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
-          )}
-        </FormGroup>
-
-        <FormGroup
-          className="flex flex-col"
-          name="captationType"
-          label="Tipo de captação"
-        >
-          {(removeErrors) => (
-            <RadioGroup.Root
-              onChange={removeErrors}
-              name="captationType"
-              className="flex flex-1 gap-4"
-            >
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-              <label className="flex items-center gap-2">
-                <RadioGroup.Item value="ATIVO" /> Ativa
-              </label>
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-              <label className="flex items-center gap-2">
-                <RadioGroup.Item value="PASSIVO" /> Passiva
-              </label>
-            </RadioGroup.Root>
-          )}
-        </FormGroup>
-
-        <FormGroup
-          className="flex flex-col"
-          name="isRepurchase"
-          label="É recompra"
-        >
-          {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-          <label className="flex flex-1 items-center gap-2">
-            Sim
-            <Checkbox name="isRepurchase" id="isRepurchase" className="block" />
-          </label>
-        </FormGroup>
-
-        <FormGroup
-          className="col-span-2"
-          name="estimatedValue"
-          label="Valor estimado"
-        >
-          {(removeErrors) => (
-            <BrlInput
-              onInput={removeErrors}
-              name="estimatedValue"
-              id="estimatedValue"
-              // placeholder="R$ 1.000,00"
-            />
-          )}
-        </FormGroup>
-
-        <FormGroup name="date" label="Data da venda">
-          {(removeErrors) => (
-            <Input
-              value={format(date, "yyyy-MM-dd")}
-              onChange={(e) => {
-                removeErrors()
-                const date = e.target.valueAsDate
-                console.log(date)
-                if (!date) return
-                fetcher.submit(
-                  { date: format(date, "yyyy-MM-dd", { in: utc }) },
-                  { method: "GET" },
-                )
-              }}
-              name="date"
-              id="date"
-              type="date"
-            />
-          )}
-        </FormGroup>
-
-        <FormGroup name="indication" label="Indicado por:">
-          <Input placeholder="Nome" />
-        </FormGroup>
-
-        <FormGroup
-          className="col-span-full"
-          name="comments"
-          label="Observações"
-        >
-          <Textarea
-            id="comments"
-            name="comments"
-            placeholder="Outras informações relevantes..."
-          />
-        </FormGroup>
+        <SaleFormFields
+          campaigns={campaigns}
+          date={new Date(date)}
+          onDateChange={(newDate) => {
+            if (!newDate) return
+            fetcher.submit({ date: format(newDate, "yyyy-MM-dd", { in: utc }) })
+          }}
+        />
 
         <Button size="lg" className="mt-2 h-fit w-fit">
           Criar venda
