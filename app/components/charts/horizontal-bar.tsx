@@ -97,9 +97,8 @@ export function HorizontalBarChart<T extends { id: string }>({
   }
 
   return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: <explanation>
     <svg viewBox={`0 0 ${w} ${h}`} className="overflow-visible">
-      <title>hello</title>
-
       {<Tooltip open={tooltipVisible}>{tooltipContent}</Tooltip>}
 
       {bars.map((b) => (

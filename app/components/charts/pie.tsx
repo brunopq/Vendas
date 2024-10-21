@@ -81,9 +81,8 @@ export function PieChart<T extends BaseT>({
 
   return (
     <>
+      {/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
       <svg viewBox={`0 0 ${w} ${h}`} className="overflow-visible">
-        <title>alt text</title>
-
         <InnerText {...{ hoveredArc, totalValue, r }} />
 
         <g transform={`translate(${w / 2}, ${h / 2})`}>

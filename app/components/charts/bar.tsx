@@ -62,9 +62,8 @@ export function BarChart<T extends { id: string }>({
   })
 
   return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: <explanation>
     <svg viewBox={`0 0 ${w} ${h}`} className="overflow-visible">
-      <title>hello</title>
-
       {bars.map((b) => (
         <g fill={`color-mix(in srgb, ${b.c} 30%, black)`} key={b.id}>
           <rect
