@@ -105,6 +105,46 @@ async function handleNewCampaign(data: Record<string, unknown>) {
   })
 }
 
+const copyCampaignsSchema = z.object({
+  originMonth: z.coerce.number({
+    invalid_type_error: "Mês de origem deve ser um número",
+    required_error: "Forneça o mês de origem",
+  }),
+  originYear: z.coerce.number({
+    invalid_type_error: "Ano de origem deve ser um número",
+    required_error: "Forneça o ano de origem",
+  }),
+  destinationMonth: z.coerce.number({
+    invalid_type_error: "Mês de destino deve ser um número",
+    required_error: "Forneça o mês de destino",
+  }),
+  destinationYear: z.coerce.number({
+    invalid_type_error: "Ano de destino deve ser um número",
+    required_error: "Forneça o ano de destino",
+  }),
+})
+
+async function handleCopyCampaigns(data: Record<string, unknown>) {
+  const parsed = copyCampaignsSchema.parse(data)
+
+  const campaigns = await CampaignService.getByMonth(
+    parsed.originMonth + 1,
+    parsed.originYear,
+  )
+
+  const newCampaigns = await CampaignService.createMany(
+    campaigns.map((c) => ({
+      ...c,
+      id: undefined,
+      month: new Date(
+        Date.UTC(parsed.destinationYear, parsed.destinationMonth + 1),
+      ).toDateString(),
+    })),
+  )
+
+  return newCampaigns
+}
+
 async function handleDeleteUser(data: Record<string, unknown>) {
   const { id } = data
   if (!id) return
@@ -169,6 +209,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
   if (request.method === "POST" && data.actionType === "campaign") {
     return handle("POST", "campaign", () => handleNewCampaign(data))
+  }
+  if (request.method === "POST" && data.actionType === "copy_campaigns") {
+    return handle("POST", "copy_campaigns", () => handleCopyCampaigns(data))
   }
   if (request.method === "PUT" && data.actionType === "user") {
     return handle("PUT", "user", () => handleUpdateUser(data))

@@ -69,6 +69,29 @@ class CampaignService {
     return await db.insert(campaign).values(newCampaign).returning()
   }
 
+  async createMany(campaigns: NewCampaign[]) {
+    for (const campaign of campaigns) {
+      if (!campaign.month) {
+        throw new Error("Month is mandatory")
+      }
+      const date = new Date(campaign.month)
+
+      validateDate(date.getMonth() + 1, date.getFullYear())
+
+      // TODO: promise.all this
+      const sameNameAndMonth = await db.query.campaign.findFirst({
+        where: ({ name, month }, { eq, and }) =>
+          and(eq(name, campaign.name), eq(month, campaign.month as string)),
+      })
+
+      if (sameNameAndMonth) {
+        throw new Error("Campaign with same name in this month already")
+      }
+    }
+
+    return await db.insert(campaign).values(campaigns).returning()
+  }
+
   async delete(id: string) {
     await db.delete(campaign).where(eq(campaign.id, id))
   }

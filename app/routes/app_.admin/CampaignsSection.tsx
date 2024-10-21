@@ -8,13 +8,18 @@ import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { ptBR } from "date-fns/locale"
 import { format, parse } from "date-fns"
+import { utc } from "@date-fns/utc"
 
-import { toast } from "~/hooks/use-toast"
+import { months } from "~/constants/months"
 
 import { brl, currencyToNumber } from "~/lib/formatters"
 import { maxWidth } from "~/lib/utils"
 
+import { toast } from "~/hooks/use-toast"
+
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
+
+import type { loader as campaignLoader } from "~/routes/app.campaigns"
 
 import FormGroup from "~/components/FormGroup"
 
@@ -29,7 +34,6 @@ import {
 } from "~/components/ui"
 
 import { type action, type loader, getResult } from "./route"
-import { months } from "~/constants/months"
 
 export function CampaignsSection() {
   const { campaigns } = useLoaderData<typeof loader>()
@@ -119,7 +123,94 @@ function CampaignDropdown({ id }: { id: string }) {
   )
 }
 
+type MonthAndYear = {
+  month: (typeof months)[number] | null
+  year: number | null
+}
 function CopyCampaignsModal({ children }: { children: JSX.Element }) {
+  const actionData = useActionData<typeof action>()
+  const copyResopnse = getResult(actionData, "POST", "copy_campaigns")
+
+  const originCampaignsFetcher = useFetcher<typeof campaignLoader>()
+  const destinationCampaignsFetcher = useFetcher<typeof campaignLoader>()
+  const [origin, setOrigin] = useState<MonthAndYear>({
+    month: null,
+    year: null,
+  })
+  const [destination, setDestination] = useState<MonthAndYear>({
+    month: null,
+    year: null,
+  })
+
+  let originCampaignsCount = 0
+  let destinationCampaignsCount = 0
+
+  if (originCampaignsFetcher.data) {
+    originCampaignsCount = originCampaignsFetcher.data.campaigns.length
+  }
+
+  if (destinationCampaignsFetcher.data) {
+    destinationCampaignsCount =
+      destinationCampaignsFetcher.data.campaigns.length
+  }
+
+  const handleSetOrigin = (newOrigin: MonthAndYear) => {
+    setOrigin(newOrigin)
+
+    if (newOrigin.month && newOrigin.year) {
+      originCampaignsFetcher.submit(
+        {
+          date: format(
+            new Date(
+              newOrigin.year,
+              months.findIndex((m) => m === newOrigin.month),
+            ),
+            "yyyy-MM-dd",
+            { in: utc },
+          ),
+        },
+        { method: "GET", action: "/app/campaigns" },
+      )
+    }
+  }
+
+  useEffect(() => {
+    if (!copyResopnse) return
+
+    if (copyResopnse.ok) {
+      toast({
+        title: "Categorias copiadas!",
+        // TODO: add from month and to month
+      })
+    } else if (copyResopnse.error.find((e) => e.type === "backend")) {
+      toast({
+        title: "Erro desconhecido",
+        description: "Não foi possível copiar as campanhas",
+        variant: "destructive",
+      })
+    }
+  }, [copyResopnse])
+
+  const handleSetDestination = (newDestination: MonthAndYear) => {
+    setDestination(newDestination)
+
+    if (newDestination.month && newDestination.year) {
+      destinationCampaignsFetcher.submit(
+        {
+          date: format(
+            new Date(
+              newDestination.year,
+              months.findIndex((m) => m === newDestination.month),
+            ),
+            "yyyy-MM-dd",
+            { in: utc },
+          ),
+        },
+        { method: "GET", action: "/app/campaigns" },
+      )
+    }
+  }
+
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
@@ -133,19 +224,29 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
           </Dialog.Description>
         </Dialog.Header>
 
-        <Form>
+        <Form method="POST">
+          <input type="hidden" name="actionType" value="copy_campaigns" />
           <div className="grid gap-x-2 gap-y-4 sm:grid-cols-[1fr_1fr_auto]">
             <div className="col-span-full grid grid-cols-subgrid items-end gap-y-1">
               <span className="col-span-full">Origem:</span>
               <FormGroup name="originMonth" label="Mês">
                 {(removeErrors) => (
-                  <Select.Root name="originMonth" onValueChange={removeErrors}>
+                  <Select.Root
+                    name="originMonth"
+                    onValueChange={(m) => {
+                      removeErrors()
+                      handleSetOrigin({
+                        month: months[Number(m)],
+                        year: origin.year,
+                      })
+                    }}
+                  >
                     <Select.Trigger>
                       <Select.Value placeholder="Selecione..." />
                     </Select.Trigger>
                     <Select.Content>
-                      {months.map((m) => (
-                        <Select.Item value={m} key={m}>
+                      {months.map((m, i) => (
+                        <Select.Item value={i.toString()} key={m}>
                           {m}
                         </Select.Item>
                       ))}
@@ -156,7 +257,13 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
 
               <FormGroup name="originYear" label="Ano">
                 {(removeErrors) => (
-                  <Select.Root name="originYear" onValueChange={removeErrors}>
+                  <Select.Root
+                    name="originYear"
+                    onValueChange={(y) => {
+                      removeErrors()
+                      handleSetOrigin({ month: origin.month, year: Number(y) })
+                    }}
+                  >
                     <Select.Trigger>
                       <Select.Value placeholder="Selecione..." />
                     </Select.Trigger>
@@ -172,7 +279,7 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
                 )}
               </FormGroup>
 
-              <span>0 campanhas</span>
+              <span>{originCampaignsCount} campanhas</span>
             </div>
 
             <div className="col-span-full grid grid-cols-subgrid items-end gap-y-1">
@@ -181,14 +288,20 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
                 {(removeErrors) => (
                   <Select.Root
                     name="destinationMonth"
-                    onValueChange={removeErrors}
+                    onValueChange={(m) => {
+                      removeErrors()
+                      handleSetDestination({
+                        month: months[Number(m)],
+                        year: destination.year,
+                      })
+                    }}
                   >
                     <Select.Trigger>
                       <Select.Value placeholder="Selecione..." />
                     </Select.Trigger>
                     <Select.Content>
-                      {months.map((m) => (
-                        <Select.Item value={m} key={m}>
+                      {months.map((m, i) => (
+                        <Select.Item value={i.toString()} key={m}>
                           {m}
                         </Select.Item>
                       ))}
@@ -201,7 +314,13 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
                 {(removeErrors) => (
                   <Select.Root
                     name="destinationYear"
-                    onValueChange={removeErrors}
+                    onValueChange={(y) => {
+                      removeErrors()
+                      handleSetDestination({
+                        month: destination.month,
+                        year: Number(y),
+                      })
+                    }}
                   >
                     <Select.Trigger>
                       <Select.Value placeholder="Selecione..." />
@@ -218,7 +337,7 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
                 )}
               </FormGroup>
 
-              <span>0 campanhas</span>
+              <span>{destinationCampaignsCount} campanhas</span>
             </div>
           </div>
 
