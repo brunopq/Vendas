@@ -35,6 +35,12 @@ class SalesService {
     })
   }
 
+  async getById(id: string) {
+    return await db.query.sale.findFirst({
+      where: (sale, { eq }) => eq(sale.id, id),
+    })
+  }
+
   async getBySeller(sellerId: string) {
     await db.query.sale.findMany({
       where: (sales, { eq }) => eq(sales.seller, sellerId),
