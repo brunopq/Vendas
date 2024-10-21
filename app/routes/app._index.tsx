@@ -1,7 +1,7 @@
 import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
-import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { memo, useState } from "react"
+import { ChevronDown, EllipsisVertical, MoreVerticalIcon } from "lucide-react"
 import {
   flexRender,
   getCoreRowModel,
@@ -323,6 +323,27 @@ function DateSelection() {
 
 const defaultColumns: ColumnDef<DomainSale>[] = [
   {
+    id: "dropdown",
+    header: "",
+    accessorKey: "id",
+    enableHiding: false,
+    enableSorting: false,
+    cell: memo(({ cell }) => (
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <Button variant="ghost" className="p-1">
+            <EllipsisVertical className="size-4" />
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.Item asChild>
+            <Link to={`venda/${cell.getValue()}`}>Editar</Link>
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+    )),
+  },
+  {
     id: "date",
     header: "Data",
     accessorKey: "date",
@@ -432,29 +453,36 @@ function RecentSales() {
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <Button size="sm" variant="ghost">
-              Selecione colunas ({table.getVisibleLeafColumns().length}/
-              {table.getAllColumns().length})
+              Selecione colunas (
+              {
+                table.getVisibleLeafColumns().filter((c) => c.getCanHide())
+                  .length
+              }
+              /{table.getAllColumns().filter((c) => c.getCanHide()).length})
             </Button>
           </DropdownMenu.Trigger>
 
           <DropdownMenu.Content>
-            {table.getAllLeafColumns().map((column) => (
-              <DropdownMenu.CheckboxItem
-                key={column.id}
-                {...{
-                  type: "checkbox",
-                  checked: column.getIsVisible(),
-                  onSelect: (e) => {
-                    e.preventDefault()
-                    column.getToggleVisibilityHandler()(e)
-                  },
-                }}
-                className="px-1"
-              >
-                {typeof column.columnDef.header === "string" &&
-                  column.columnDef.header}
-              </DropdownMenu.CheckboxItem>
-            ))}
+            {table.getAllLeafColumns().map(
+              (column) =>
+                column.getCanHide() && (
+                  <DropdownMenu.CheckboxItem
+                    key={column.id}
+                    {...{
+                      type: "checkbox",
+                      checked: column.getIsVisible(),
+                      onSelect: (e) => {
+                        e.preventDefault()
+                        column.getToggleVisibilityHandler()(e)
+                      },
+                    }}
+                    className="px-1"
+                  >
+                    {typeof column.columnDef.header === "string" &&
+                      column.columnDef.header}
+                  </DropdownMenu.CheckboxItem>
+                ),
+            )}
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </fieldset>
@@ -467,7 +495,9 @@ function RecentSales() {
                 <Table.Head
                   onPointerDown={c.column.getToggleSortingHandler()}
                   key={c.id}
-                  className="group cursor-pointer"
+                  className={
+                    c.column.getCanSort() ? "group cursor-pointer" : undefined
+                  }
                 >
                   <span className="flex select-none items-center gap-2">
                     {c.isPlaceholder
