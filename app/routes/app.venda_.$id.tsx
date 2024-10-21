@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node"
 import {
   Form,
@@ -8,20 +9,21 @@ import {
   useLoaderData,
 } from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
+import { ZodError } from "zod"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
+import { currencyToNumeric } from "~/lib/formatters"
+import { typedError, typedOk } from "~/lib/result"
 
-import { ErrorProvider, ErrorT } from "~/context/ErrorsContext"
+import SalesService from "~/services/SalesService"
+
+import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
+
+import { toast } from "~/hooks/use-toast"
 
 import { Button } from "~/components/ui"
 
 import SaleFormFields, { saleFormSchema } from "~/components/SaleFormFields"
-import SalesService from "~/services/SalesService"
-import { currencyToNumeric } from "~/lib/formatters"
-import { ZodError } from "zod"
-import { typedError, typedOk } from "~/lib/result"
-import { useEffect } from "react"
-import { toast } from "~/hooks/use-toast"
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const user = await getUserOrRedirect(request)

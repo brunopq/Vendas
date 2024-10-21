@@ -13,6 +13,7 @@ import type { loader as campaignLoader } from "~/routes/app.campaigns"
 
 import { Input, Select, Checkbox, RadioGroup, BrlInput, Textarea } from "./ui"
 import FormGroup from "./FormGroup"
+import { brl } from "~/lib/formatters"
 
 const saleAreas = saleAreaSchema().options
 
@@ -152,23 +153,18 @@ export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
         {(removeErrors) => (
           <RadioGroup.Root
             onChange={removeErrors}
+            defaultValue={defaults?.captationType}
             name="captationType"
             className="flex flex-1 gap-4"
           >
             {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
             <label className="flex items-center gap-2">
-              <RadioGroup.Item
-                defaultChecked={defaults?.captationType === "ATIVO"}
-                value="ATIVO"
-              />
+              <RadioGroup.Item value="ATIVO" />
               Ativa
             </label>
             {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
             <label className="flex items-center gap-2">
-              <RadioGroup.Item
-                defaultChecked={defaults?.captationType === "PASSIVO"}
-                value="PASSIVO"
-              />
+              <RadioGroup.Item value="PASSIVO" />
               Passiva
             </label>
           </RadioGroup.Root>
@@ -199,7 +195,11 @@ export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
       >
         {(removeErrors) => (
           <BrlInput
-            defaultValue={defaults?.estimatedValue ?? undefined}
+            defaultValue={
+              defaults?.estimatedValue
+                ? brl(defaults.estimatedValue)
+                : undefined
+            }
             onInput={removeErrors}
             name="estimatedValue"
             id="estimatedValue"
