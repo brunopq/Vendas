@@ -1,26 +1,15 @@
 import type {
   ActionFunctionArgs,
-  LoaderFunctionArgs,
   MetaFunction,
   TypedResponse,
 } from "@remix-run/node"
-import {
-  Form,
-  json,
-  Link,
-  useActionData,
-  useFetcher,
-  useLoaderData,
-} from "@remix-run/react"
+import { Form, Link, useActionData } from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
 import { z } from "zod"
-import { format, isValid, parse } from "date-fns"
-import { utc } from "@date-fns/utc"
 
 import { captationTypeSchema, saleAreaSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
-import CampaignService from "~/services/CampaignService"
 
 import { type Result, typedOk, typedError } from "~/lib/result"
 import { currencyToNumeric } from "~/lib/formatters"
@@ -68,27 +57,6 @@ const formSchema = z.object({
   comments: z.string().optional(),
   indication: z.string().optional(),
 })
-
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await getUserOrRedirect(request)
-
-  const urlDate = new URL(request.url).searchParams.get("date")
-
-  let date: Date | null = null
-  if (urlDate) {
-    date = parse(urlDate, "yyyy-MM-dd", new Date())
-  }
-  if (!date || !isValid(date)) {
-    date = new Date()
-  }
-
-  const campaigns = await CampaignService.getByMonth(
-    date.getUTCMonth() + 1,
-    date.getUTCFullYear(),
-  )
-
-  return json({ campaigns, date })
-}
 
 type ActionResponse = Result<DomainSale, ErrorT[]>
 export const action = async ({
@@ -138,13 +106,7 @@ export const action = async ({
 }
 
 export default function Venda() {
-  let { campaigns, date } = useLoaderData<typeof loader>()
   const response = useActionData<typeof action>()
-  const fetcher = useFetcher<typeof loader>()
-  if (fetcher.data) {
-    campaigns = fetcher.data.campaigns
-    date = fetcher.data.date
-  }
 
   let errors: ErrorT[] = []
   if (response && !response.ok) {
@@ -177,14 +139,7 @@ export default function Venda() {
       </header>
 
       <Form method="post" className="mt-8 grid gap-x-4 gap-y-6 sm:grid-cols-4">
-        <SaleFormFields
-          campaigns={campaigns}
-          date={new Date(date)}
-          onDateChange={(newDate) => {
-            if (!newDate) return
-            fetcher.submit({ date: format(newDate, "yyyy-MM-dd", { in: utc }) })
-          }}
-        />
+        <SaleFormFields />
 
         <Button size="lg" className="mt-2 h-fit w-fit">
           Criar venda
