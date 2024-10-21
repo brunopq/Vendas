@@ -1,15 +1,27 @@
-import type { LoaderFunctionArgs } from "@remix-run/node"
-import { Form, json, Link, redirect, useLoaderData } from "@remix-run/react"
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node"
+import {
+  Form,
+  json,
+  Link,
+  redirect,
+  useActionData,
+  useLoaderData,
+} from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
 
-import { ErrorProvider } from "~/context/ErrorsContext"
+import { ErrorProvider, ErrorT } from "~/context/ErrorsContext"
 
 import { Button } from "~/components/ui"
 
-import SaleFormFields from "~/components/SaleFormFields"
+import SaleFormFields, { saleFormSchema } from "~/components/SaleFormFields"
 import SalesService from "~/services/SalesService"
+import { currencyToNumeric } from "~/lib/formatters"
+import { ZodError } from "zod"
+import { typedError, typedOk } from "~/lib/result"
+import { useEffect } from "react"
+import { toast } from "~/hooks/use-toast"
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const user = await getUserOrRedirect(request)
@@ -29,10 +41,80 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   return json(sale)
 }
 
+const editSaleFormSchema = saleFormSchema.omit({ seller: true })
+
+export const action = async ({ request, params }: ActionFunctionArgs) => {
+  const user = await getUserOrRedirect(request)
+
+  const saleId = params.id
+
+  if (!saleId) {
+    throw new Error("sale id not provided (??????????)")
+  }
+
+  const formData = await request.formData()
+
+  const data: Record<string, unknown> = {}
+
+  for (const [field, value] of formData) {
+    if (value) {
+      data[field] = String(value)
+    }
+  }
+
+  if (data.isRepurchase === "on") {
+    data.isRepurchase = true
+  } else {
+    data.isRepurchase = false
+  }
+
+  if (data.estimatedValue) {
+    data.estimatedValue = currencyToNumeric(
+      typeof data.estimatedValue === "string" ? data.estimatedValue : "",
+    )
+  }
+
+  try {
+    const parsed = editSaleFormSchema.parse(data)
+
+    const updated = await SalesService.update(saleId, parsed)
+
+    return typedOk(updated)
+  } catch (e) {
+    if (e instanceof ZodError) {
+      const errors = e.issues.map((i) => ({
+        type: i.path.join("/"),
+        message: i.message,
+      }))
+
+      return typedError(errors)
+    }
+
+    return typedError([{ type: "backend", message: "unknown backend error" }])
+  }
+}
+
 export default function Venda() {
   const sale = useLoaderData<typeof loader>()
+  const response = useActionData<typeof action>()
 
-  const errors = undefined
+  let errors: ErrorT[] = []
+  if (response && !response.ok) {
+    errors = response.error
+  }
+
+  useEffect(() => {
+    if (!response) return
+    if (response.ok) {
+      toast({ title: "Venda editada com sucesso!" })
+    } else if (response.error.find((e) => e.type === "backend")) {
+      toast({
+        title: "Erro desconhecido",
+        description: "Não foi possível editar a venda :(",
+        variant: "destructive",
+      })
+    }
+  }, [response])
 
   return (
     <ErrorProvider initialErrors={errors}>
@@ -43,15 +125,15 @@ export default function Venda() {
           </Link>
         </Button>
 
-        <h2 className="font-medium text-2xl">Nova venda</h2>
+        <h2 className="font-medium text-2xl">Editar venda</h2>
       </header>
 
       <Form method="post" className="mt-8 grid gap-x-4 gap-y-6 sm:grid-cols-4">
-        <SaleFormFields />
+        <SaleFormFields defaults={sale} />
 
-        <Button size="lg" className="mt-2 h-fit w-fit">
-          Criar venda
-        </Button>
+        <footer className="col-span-full mt-2">
+          <Button size="lg">Confirmar edições</Button>
+        </footer>
       </Form>
     </ErrorProvider>
   )

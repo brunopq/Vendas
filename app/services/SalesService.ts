@@ -165,6 +165,15 @@ class SalesService {
 
     return createdSale
   }
+
+  async update(id: string, data: Partial<NewSale>) {
+    const [updated] = await db
+      .update(sale)
+      .set(data)
+      .where(eq(sale.id, id))
+      .returning()
+    return updated
+  }
 }
 
 export default new SalesService()
