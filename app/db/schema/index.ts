@@ -45,7 +45,7 @@ export const userRelations = relations(user, ({ many }) => ({
 
 export const campaign = pgTable("campaigns", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
-  name: text("name").notNull().unique(),
+  name: text("name").notNull(),
   goal: integer("goal").notNull(),
   prize: numeric("prize", { precision: 16, scale: 2 }).notNull(),
   month: date("month").defaultNow().notNull(),
