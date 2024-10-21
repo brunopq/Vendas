@@ -6,9 +6,7 @@ import type {
 import { Form, Link, useActionData } from "@remix-run/react"
 import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
-import { z } from "zod"
 
-import { captationTypeSchema, saleAreaSchema } from "~/db/schema"
 import SalesService, { type DomainSale } from "~/services/SalesService"
 
 import { type Result, typedOk, typedError } from "~/lib/result"
@@ -21,42 +19,13 @@ import { toast } from "~/hooks/use-toast"
 
 import { Button } from "~/components/ui"
 
-import SaleFormFields from "~/components/SaleFormFields"
+import SaleFormFields, { saleFormSchema } from "~/components/SaleFormFields"
 
 export const meta: MetaFunction = () => [
   {
     title: "Nova venda",
   },
 ]
-
-const formSchema = z.object({
-  date: z
-    .string({ required_error: "Insira uma data" })
-    .date("Data mal formatada"),
-  seller: z.string({ message: "Seller is required" }),
-  campaign: z.string({ required_error: "Selecione a campanha da venda" }),
-  saleArea: saleAreaSchema({
-    required_error: "Selecione a área da venda",
-    invalid_type_error: "Área de venda inválido",
-  }),
-  captationType: captationTypeSchema({
-    required_error: "Escolha um tipo de captação",
-    invalid_type_error: "Tipo de captação inválido",
-  }),
-  client: z
-    .string({ required_error: "Insira o nome do cliente" })
-    .min(1, "Insira o nome do cliente"),
-  adverseParty: z
-    .string({ required_error: "Insira a parte adversa" })
-    .min(1, "Insira a parte adversa"),
-  isRepurchase: z.coerce.boolean().default(false),
-  estimatedValue: z
-    .string()
-    .regex(/^\d+(\.\d{1,2})?$/, "Valor estimado deve estar no formato correto")
-    .optional(),
-  comments: z.string().optional(),
-  indication: z.string().optional(),
-})
 
 type ActionResponse = Result<DomainSale, ErrorT[]>
 export const action = async ({
@@ -89,7 +58,7 @@ export const action = async ({
       )
     }
 
-    const parsed = formSchema.safeParse(data)
+    const parsed = saleFormSchema.safeParse(data)
     if (!parsed.success) {
       const errors = parsed.error.issues.map((i) => ({
         type: i.path.join("/"),
