@@ -5,12 +5,14 @@ import {
   useLoaderData,
 } from "@remix-run/react"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { ptBR } from "date-fns/locale"
 import { format, parse } from "date-fns"
 import { utc } from "@date-fns/utc"
 
 import { months } from "~/constants/months"
+
+import type { DomainCampaign } from "~/services/CampaignService"
 
 import { brl, currencyToNumber } from "~/lib/formatters"
 import { maxWidth } from "~/lib/utils"
@@ -81,7 +83,7 @@ export function CampaignsSection() {
               <Table.Cell>{c.goal}</Table.Cell>
               <Table.Cell>{brl(c.prize)}</Table.Cell>
               <Table.Cell className="w-0">
-                <CampaignDropdown id={c.id} />
+                <CampaignDropdown campaign={c} />
               </Table.Cell>
             </Table.Row>
           ))}
@@ -91,7 +93,11 @@ export function CampaignsSection() {
   )
 }
 
-function CampaignDropdown({ id }: { id: string }) {
+type CampaignDropdownProps = {
+  campaign: DomainCampaign
+}
+
+function CampaignDropdown({ campaign }: CampaignDropdownProps) {
   const fetcher = useFetcher({})
 
   return (
@@ -102,14 +108,16 @@ function CampaignDropdown({ id }: { id: string }) {
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
-        <DropdownMenu.Item>
-          <Edit className="size-5" />
-          Editar
-        </DropdownMenu.Item>
+        <EditCampaignModal campaign={campaign}>
+          <DropdownMenu.Item onSelect={(e) => e.preventDefault()}>
+            <Edit className="size-5" />
+            Editar
+          </DropdownMenu.Item>
+        </EditCampaignModal>
         <DropdownMenu.Item
           onClick={() =>
             fetcher.submit(
-              { actionType: "campaign", id: id },
+              { actionType: "campaign", id: campaign.id },
               { method: "delete" },
             )
           }
@@ -120,6 +128,201 @@ function CampaignDropdown({ id }: { id: string }) {
         </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
+  )
+}
+
+type CampaiginFormFieldsProps = {
+  campaign?: Partial<DomainCampaign>
+}
+
+function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
+  const [goal, setGoal] = useState<number>(campaign?.goal ?? 0)
+  const [prize, setPrize] = useState<number>(
+    campaign?.prize ? currencyToNumber(campaign.prize) : 0,
+  )
+
+  return (
+    <>
+      <FormGroup name="name" label="Nome da campanha">
+        {(removeError) => (
+          <Input
+            defaultValue={campaign?.name}
+            onInput={removeError}
+            name="name"
+            placeholder="Categoria..."
+          />
+        )}
+      </FormGroup>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormGroup name="month" label="Mês de vigência">
+          {(removeErrors) => (
+            <Select.Root
+              defaultValue={
+                campaign?.month &&
+                months[new Date(campaign.month).getUTCMonth()]
+              }
+              onValueChange={removeErrors}
+              name="month"
+            >
+              <Select.Trigger>
+                <Select.Value placeholder="Selecione" />
+              </Select.Trigger>
+              <Select.Content>
+                {months.map((m) => (
+                  <Select.Item value={m} key={m}>
+                    {m}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          )}
+        </FormGroup>
+
+        <FormGroup name="year" label="Ano de vigência">
+          {(removeErrors) => (
+            <Select.Root
+              defaultValue={
+                campaign?.month &&
+                new Date(campaign.month).getUTCFullYear().toString()
+              }
+              onValueChange={removeErrors}
+              name="year"
+            >
+              <Select.Trigger>
+                <Select.Value placeholder="Selecione" />
+              </Select.Trigger>
+              <Select.Content>
+                {[2024].map((a) => (
+                  <Select.Item value={a.toString()} key={a}>
+                    {a}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          )}
+        </FormGroup>
+      </div>
+
+      <FormGroup name="goal" label="Meta principal">
+        {(removeError) => (
+          <Input
+            onInput={(e) => {
+              removeError()
+              if (!Number.isNaN(e.currentTarget.valueAsNumber)) {
+                setGoal(e.currentTarget.valueAsNumber)
+              }
+            }}
+            value={goal}
+            name="goal"
+            placeholder="Meta..."
+            type="number"
+            min={0}
+          />
+        )}
+      </FormGroup>
+      <FormGroup name="prize" label="Comissão">
+        {(removeError) => (
+          <BrlInput
+            onInput={(e) => {
+              removeError()
+              setPrize(currencyToNumber(e.currentTarget.value))
+            }}
+            defaultValue={brl(prize)}
+            name="prize"
+          />
+        )}
+      </FormGroup>
+
+      <div className="mt-2 grid grid-cols-3 text-sm">
+        <strong className="col-span-3 mb-1 text-base">Metas: </strong>
+
+        <span className="text-zinc-600">Meta</span>
+        <span className="text-zinc-600">N. de vendas</span>
+        <span className="text-zinc-600">Comissão</span>
+
+        <span>50%</span>
+        <span>{Math.round(goal * 0.5)}</span>
+        <span>{brl(prize * 0.5)}</span>
+
+        <span>75%</span>
+        <span>{Math.round(goal * 0.75)}</span>
+        <span>{brl(prize * 0.75)}</span>
+
+        <span>100%</span>
+        <span>{Math.round(goal * 1)}</span>
+        <span>{brl(prize * 1)}</span>
+
+        <span>110%</span>
+        <span>{Math.round(goal * 1.1)}</span>
+        <span>{brl(prize * 1.1)}</span>
+      </div>
+    </>
+  )
+}
+
+type EditCampaignModalProps = {
+  children: JSX.Element
+  campaign: DomainCampaign
+}
+
+function EditCampaignModal({ children, campaign }: EditCampaignModalProps) {
+  const fetcher = useFetcher<typeof action>({ key: React.useId() })
+  const actionResponse = fetcher.data
+
+  const putCampaignResponse = getResult(actionResponse, "PUT", "campaign")
+
+  let errors: ErrorT[] = []
+  if (putCampaignResponse && !putCampaignResponse.ok) {
+    errors = putCampaignResponse.error
+  }
+
+  useEffect(() => {
+    if (!putCampaignResponse) return
+    if (putCampaignResponse.ok) {
+      toast({ title: "Campanha editada!" })
+      console.log(putCampaignResponse.value)
+    } else if (putCampaignResponse.error.find((e) => e.type === "backend")) {
+      toast({
+        title: "Erro desconhecido",
+        description: "Não foi possível editar a campanha :(",
+        variant: "destructive",
+      })
+    }
+  }, [putCampaignResponse])
+
+  console.log(errors)
+
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
+
+      <Dialog.Content>
+        <Dialog.Title>
+          Editar campanha{" "}
+          <strong className="font-semibold text-primary-600">
+            {campaign.name}
+          </strong>
+        </Dialog.Title>
+
+        <fetcher.Form method="PUT" className="flex flex-col gap-4">
+          <ErrorProvider initialErrors={errors}>
+            <input type="hidden" name="actionType" value="campaign" />
+            <input type="hidden" name="id" value={campaign.id} />
+            <CampaiginFormFields campaign={campaign} />
+
+            <Dialog.Footer className="mt-4">
+              <Dialog.Close asChild>
+                <Button type="button" variant="ghost">
+                  Cancelar
+                </Button>
+              </Dialog.Close>
+              <Button type="submit">Salvar alterações</Button>
+            </Dialog.Footer>
+          </ErrorProvider>
+        </fetcher.Form>
+      </Dialog.Content>
+    </Dialog.Root>
   )
 }
 
@@ -365,9 +568,6 @@ function NewCampaignModal({ children }: { children: JSX.Element }) {
     errors = newCampaignAction.error
   }
 
-  const [goal, setGoal] = useState<number>(0)
-  const [prize, setPrize] = useState<number>(0)
-
   useEffect(() => {
     if (!newCampaignAction) return
     if (newCampaignAction.ok) {
@@ -391,104 +591,8 @@ function NewCampaignModal({ children }: { children: JSX.Element }) {
         <ErrorProvider initialErrors={errors}>
           <Form method="post" className="flex flex-col gap-4">
             <input type="hidden" name="actionType" value="campaign" />
-            <FormGroup name="name" label="Nome da campanha">
-              {(removeError) => (
-                <Input
-                  onInput={removeError}
-                  name="name"
-                  placeholder="Categoria..."
-                />
-              )}
-            </FormGroup>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormGroup name="month" label="Mês de vigência">
-                {(removeErrors) => (
-                  <Select.Root onValueChange={removeErrors} name="month">
-                    <Select.Trigger>
-                      <Select.Value placeholder="Selecione" />
-                    </Select.Trigger>
-                    <Select.Content>
-                      {months.map((m) => (
-                        <Select.Item value={m} key={m}>
-                          {m}
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Root>
-                )}
-              </FormGroup>
-
-              <FormGroup name="year" label="Ano de vigência">
-                {(removeErrors) => (
-                  <Select.Root onValueChange={removeErrors} name="year">
-                    <Select.Trigger>
-                      <Select.Value placeholder="Selecione" />
-                    </Select.Trigger>
-                    <Select.Content>
-                      {[2024].map((a) => (
-                        <Select.Item value={a.toString()} key={a}>
-                          {a}
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Root>
-                )}
-              </FormGroup>
-            </div>
-
-            <FormGroup name="goal" label="Meta principal">
-              {(removeError) => (
-                <Input
-                  onInput={(e) => {
-                    removeError()
-                    if (!Number.isNaN(e.currentTarget.valueAsNumber)) {
-                      setGoal(e.currentTarget.valueAsNumber)
-                    }
-                  }}
-                  value={goal}
-                  name="goal"
-                  placeholder="Meta..."
-                  type="number"
-                  min={0}
-                />
-              )}
-            </FormGroup>
-            <FormGroup name="prize" label="Comissão">
-              {(removeError) => (
-                <BrlInput
-                  onInput={(e) => {
-                    removeError()
-                    setPrize(currencyToNumber(e.currentTarget.value))
-                  }}
-                  name="prize"
-                />
-              )}
-            </FormGroup>
-
-            <div className="mt-2 grid grid-cols-3 text-sm">
-              <strong className="col-span-3 mb-1 text-base">Metas: </strong>
-
-              <span className="text-zinc-600">Meta</span>
-              <span className="text-zinc-600">N. de vendas</span>
-              <span className="text-zinc-600">Comissão</span>
-
-              <span>50%</span>
-              <span>{Math.round(goal * 0.5)}</span>
-              <span>{brl(prize * 0.5)}</span>
-
-              <span>75%</span>
-              <span>{Math.round(goal * 0.75)}</span>
-              <span>{brl(prize * 0.75)}</span>
-
-              <span>100%</span>
-              <span>{Math.round(goal * 1)}</span>
-              <span>{brl(prize * 1)}</span>
-
-              <span>110%</span>
-              <span>{Math.round(goal * 1.1)}</span>
-              <span>{brl(prize * 1.1)}</span>
-            </div>
+            <CampaiginFormFields />
 
             <Dialog.Footer className="mt-4">
               <Dialog.Close asChild>

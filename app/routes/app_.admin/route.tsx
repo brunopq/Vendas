@@ -10,7 +10,9 @@ import type { useActionData } from "@remix-run/react"
 import { userRoleSchmea } from "~/db/schema"
 
 import AuthService from "~/services/AuthService"
-import CampaignService from "~/services/CampaignService"
+import CampaignService, {
+  type UpdateCampaign,
+} from "~/services/CampaignService"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { currencyToNumeric } from "~/lib/formatters"
@@ -103,6 +105,40 @@ async function handleNewCampaign(data: Record<string, unknown>) {
       1,
     ).toDateString(),
   })
+}
+
+const updateCampaignFormSchema = campaignSchema.extend({
+  id: z.string(),
+})
+
+async function handleUpdateCampaign(data: Record<string, unknown>) {
+  if (data.prize) {
+    data.prize = currencyToNumeric(String(data.prize))
+  }
+
+  if (data.year) {
+    data.year = Number(data.year)
+  }
+
+  const parsed = updateCampaignFormSchema.parse(data)
+
+  const id = parsed.id
+
+  const updateCampaign: UpdateCampaign = {
+    goal: parsed.goal,
+    name: parsed.name,
+    prize: parsed.prize,
+  }
+
+  if (parsed.month && parsed.year) {
+    updateCampaign.month = new Date(
+      parsed.year,
+      months.findIndex((m) => m === parsed.month),
+      1,
+    ).toDateString()
+  }
+
+  return await CampaignService.update(parsed.id, updateCampaign)
 }
 
 const copyCampaignsSchema = z.object({
@@ -216,7 +252,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (request.method === "PUT" && data.actionType === "user") {
     return handle("PUT", "user", () => handleUpdateUser(data))
   }
-
+  if (request.method === "PUT" && data.actionType === "campaign") {
+    return handle("PUT", "campaign", () => handleUpdateCampaign(data))
+  }
   console.log("method not implemented")
 
   return {

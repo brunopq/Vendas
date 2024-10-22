@@ -10,6 +10,7 @@ import {
 
 export type DomainCampaign = Campaign
 export type NewCampaign = DbNewCampaign
+export type UpdateCampaign = Partial<Omit<DomainCampaign, "id">>
 
 function validateDate(month: number, year: number): Date {
   if (month < 1 || month > 12 || year < 2000) {
@@ -90,6 +91,38 @@ class CampaignService {
     }
 
     return await db.insert(campaign).values(campaigns).returning()
+  }
+
+  async update(id: string, updateCampaign: UpdateCampaign) {
+    const originalCampaign = await this.getById(id)
+
+    if (!originalCampaign) {
+      throw new Error("Invalid campaign id")
+    }
+
+    const date = updateCampaign.month && new Date(updateCampaign.month)
+
+    if (date) {
+      validateDate(date.getMonth() + 1, date.getFullYear())
+    }
+
+    const sameNameAndMonth = await db.query.campaign.findFirst({
+      where: ({ name, month }, { eq, and }) =>
+        and(
+          eq(name, updateCampaign.name || originalCampaign.name),
+          eq(month, (updateCampaign.month as string) || originalCampaign.month),
+        ),
+    })
+
+    if (sameNameAndMonth && sameNameAndMonth.id !== id) {
+      throw new Error("Campaign with same name in this month already")
+    }
+
+    return await db
+      .update(campaign)
+      .set(updateCampaign)
+      .where(eq(campaign.id, id))
+      .returning()
   }
 
   async delete(id: string) {
