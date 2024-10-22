@@ -212,7 +212,7 @@ export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
         {(removeErrors) => (
           <Input
             disabled={campaignsFetcher.state === "loading"}
-            value={format(date, "yyyy-MM-dd")}
+            value={format(date, "yyyy-MM-dd", { in: utc })}
             onChange={(e) => {
               removeErrors()
               const newDate = e.target.valueAsDate
