@@ -9,7 +9,7 @@ import { KeyRound, LogOut, Menu } from "lucide-react"
 import { maxWidth } from "~/lib/utils"
 import { getUserOrRedirect } from "~/lib/authGuard"
 
-import { DropdownMenu } from "~/components/ui"
+import { Button, DropdownMenu } from "~/components/ui"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json(await getUserOrRedirect(request, "/login"))
@@ -31,6 +31,11 @@ export default function App() {
           Olá, {user.name}
         </strong>
 
+        {user.role === "ADMIN" && (
+          <Button className="ml-auto" size="sm" variant="link" asChild>
+            <Link to="admin">Ir para /admin</Link>
+          </Button>
+        )}
         <DropdownMenu.Root>
           <DropdownMenu.Trigger>
             <Menu />
