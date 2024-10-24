@@ -7,6 +7,7 @@ import * as BaseRadioGroup from "./radio-group"
 import * as BaseSelect from "./select"
 import * as BaseTable from "./table"
 import { Textarea } from "./textarea"
+import * as BaseTabs from "./tabs"
 
 const Dialog = {
   Root: BaseDialog.Dialog,
@@ -68,6 +69,13 @@ const Table = {
   Row: BaseTable.TableRow,
 }
 
+const Tabs = {
+  Root: BaseTabs.Tabs,
+  List: BaseTabs.TabsList,
+  Trigger: BaseTabs.TabsTrigger,
+  Content: BaseTabs.TabsContent,
+}
+
 export {
   Button,
   Checkbox,
@@ -79,4 +87,5 @@ export {
   Select,
   Table,
   Textarea,
+  Tabs,
 }
