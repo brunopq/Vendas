@@ -1,7 +1,7 @@
 import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { memo, useState } from "react"
-import { ChevronDown, EllipsisVertical, MoreVerticalIcon } from "lucide-react"
+import { ChevronDown, EllipsisVertical } from "lucide-react"
 import {
   flexRender,
   getCoreRowModel,
@@ -25,7 +25,7 @@ import SalesService, {
   type CaptationType,
 } from "~/services/SalesService"
 
-import { Button, Table, Select, DropdownMenu } from "~/components/ui"
+import { Button, Table, Select, DropdownMenu, Tabs } from "~/components/ui"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
@@ -115,22 +115,23 @@ export default function App() {
         </header>
 
         <div className="grid grid-cols-6 gap-4">
-          <div className="col-span-2 row-span-2 flex flex-col items-center justify-between gap-6 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
-            <h3 className="col-span-2 text-lg">Campanhas</h3>
+          <div className="col-span-2 row-span-2 flex flex-col items-center rounded-md border border-primary-200 bg-primary-100 shadow-sm">
+            <h3 className="mt-2 font-semibold text-lg text-primary-800">
+              Campanhas
+            </h3>
+            <Tabs.Root className="w-full" defaultValue="graph">
+              <Tabs.List>
+                <Tabs.Trigger value="graph">Gráfico</Tabs.Trigger>
+                <Tabs.Trigger value="table">Tabela</Tabs.Trigger>
+              </Tabs.List>
 
-            <PieChart
-              data={Object.entries(salesByCampaign).map(([k, v]) => ({
-                id: k,
-                area: k,
-                value: v,
-              }))}
-              name={(i) => i.area}
-              value={(i) => i.value}
-              colorStops={[
-                "var(--color-accent-300)",
-                "var(--color-accent-700)",
-              ]}
-            />
+              <Tabs.Content value="graph">
+                <CampaignsChart salesByCampaign={salesByCampaign} />
+              </Tabs.Content>
+              <Tabs.Content value="table">
+                <CampaignsTable />
+              </Tabs.Content>
+            </Tabs.Root>
           </div>
 
           <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-teal-300 bg-teal-100 p-6 shadow-sm">
@@ -274,6 +275,66 @@ export default function App() {
       <RecentSales />
 
       <footer className="mt-16 py-16" />
+    </div>
+  )
+}
+
+type CampaignsChartProps = {
+  salesByCampaign: Record<string, number>
+}
+
+function CampaignsChart({ salesByCampaign }: CampaignsChartProps) {
+  return (
+    <PieChart
+      data={Object.entries(salesByCampaign).map(([k, v]) => ({
+        id: k,
+        area: k,
+        value: v,
+      }))}
+      name={(i) => i.area}
+      value={(i) => i.value}
+      colorStops={["var(--color-accent-300)", "var(--color-accent-700)"]}
+    />
+  )
+}
+
+function CampaignsTable() {
+  const { data } = useLoaderData<typeof loader>()
+
+  // TODO: aggregate on the server
+  const salesByCampaign: Record<
+    string,
+    { sales: number; estimatedValue: number }
+  > = {}
+  for (const sale of data.total) {
+    const curr = salesByCampaign[sale.campaign.name] || {
+      estimatedValue: 0,
+      sales: 0,
+    }
+
+    curr.estimatedValue += Number(sale.estimatedValue) || 0
+    curr.sales++
+    salesByCampaign[sale.campaign.name] = curr
+  }
+
+  return (
+    <div className="grid grid-cols-[auto_auto_auto] gap-2">
+      <div className="col-span-3 mb-1 grid grid-cols-subgrid font-medium text-sm text-zinc-500">
+        <span>Campanha</span> <span>Vendas</span> <span>Total estimado</span>
+      </div>
+
+      {Object.entries(salesByCampaign).map(
+        ([campaign, { sales, estimatedValue }]) => (
+          <div
+            key={campaign}
+            className="col-span-3 grid grid-cols-subgrid text-sm text-zinc-900"
+          >
+            <span>{campaign}</span>
+            <span>{sales}</span>
+            <span>{brl(estimatedValue)}</span>
+          </div>
+        ),
+      )}
     </div>
   )
 }
