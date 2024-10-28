@@ -11,7 +11,7 @@ import {
   type ColumnDef,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { format, parse } from "date-fns"
+import { format, isBefore, isSameDay, parse } from "date-fns"
 import { z } from "zod"
 
 import { months } from "~/constants/months"
@@ -30,6 +30,7 @@ import { Button, Table, Select, DropdownMenu, Tabs } from "~/components/ui"
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
+import { LineChart } from "~/components/charts/line"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -103,6 +104,29 @@ export default function App() {
   for (const sale of data.newClients) {
     newClientsByType[sale.captationType] =
       newClientsByType[sale.captationType] + 1 || 1
+  }
+
+  const salesByDate = [] as { date: Date; count: number; id: string }[]
+  for (const sale of data.total) {
+    let index = salesByDate.findIndex((a) => isSameDay(a.date, sale.date))
+
+    if (index === -1) {
+      index = 0
+
+      while (
+        index < salesByDate.length &&
+        isBefore(salesByDate[index].date, sale.date)
+      ) {
+        index++
+      }
+
+      salesByDate.splice(index, 0, {
+        date: new Date(sale.date),
+        count: 0,
+        id: sale.date,
+      })
+    }
+    salesByDate[index].count++
   }
 
   return (
@@ -188,6 +212,22 @@ export default function App() {
               <strong className="self-center text-xl">
                 {brl(data.commissions.reduce((acc, c) => acc + c.comission, 0))}
               </strong>
+            </div>
+          </div>
+
+          <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
+            <h3 className="col-span-full mt-2 font-semibold text-lg text-primary-800">
+              Vendas durante o mês
+            </h3>
+
+            <div className="col-span-full">
+              <LineChart
+                color="var(--color-accent-500)"
+                data={salesByDate}
+                h={50}
+                name={(d) => d.date}
+                value={(d) => d.count}
+              />
             </div>
           </div>
 
