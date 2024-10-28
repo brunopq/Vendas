@@ -31,6 +31,7 @@ import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
 import { LineChart } from "~/components/charts/line"
+import { utc } from "@date-fns/utc"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -121,7 +122,7 @@ export default function App() {
       }
 
       salesByDate.splice(index, 0, {
-        date: new Date(sale.date),
+        date: parse(sale.date, "yyyy-MM-dd", new Date(), { in: utc }),
         count: 0,
         id: sale.date,
       })
@@ -225,7 +226,9 @@ export default function App() {
                 color="var(--color-accent-500)"
                 data={salesByDate}
                 h={50}
-                name={(d) => d.date}
+                name={(d) => {
+                  return d.date
+                }}
                 value={(d) => d.count}
               />
             </div>
