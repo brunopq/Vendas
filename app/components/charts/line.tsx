@@ -85,7 +85,7 @@ export function LineChart<T extends { id: string }>({
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     .x((t) => x(name(t))!)
     .y((t) => y(value(t)))
-  // .curve(d3.curveCatmullRom.alpha(0.2))
+    .curve(d3.curveCatmullRom.alpha(0.00001))
 
   const path = line(data)
 
@@ -99,7 +99,6 @@ export function LineChart<T extends { id: string }>({
       closest = d
     }
   }
-  console.log(closest)
 
   return (
     // biome-ignore lint/a11y/noSvgWithoutTitle: <explanation>
