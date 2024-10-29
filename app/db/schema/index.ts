@@ -8,6 +8,7 @@ import {
   numeric,
   integer,
   interval,
+  json,
 } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 import { customAlphabet } from "nanoid"
@@ -41,6 +42,7 @@ export const user = pgTable("users", {
 
 export const userRelations = relations(user, ({ many }) => ({
   sales: many(sale),
+  leadStatus: many(leadStatus),
 }))
 
 export const campaign = pgTable("campaigns", {
@@ -86,6 +88,49 @@ export const saleRelations = relations(sale, ({ one }) => ({
   }),
 }))
 
+export const leadStatus = pgTable("lead_status", {
+  id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
+  name: text("name").notNull(),
+  owner: char("user", { length: idLength })
+    .references(() => user.id)
+    .notNull(),
+  active: boolean("active").notNull(),
+})
+
+export const leadStatusRelations = relations(leadStatus, ({ one, many }) => ({
+  owner: one(user, { fields: [leadStatus.owner], references: [user.id] }),
+  leads: many(lead),
+}))
+
+export const lead = pgTable("leads", {
+  id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
+  asignee: char("asignee", { length: idLength })
+    .references(() => user.id)
+    .notNull(),
+  date: date("date").notNull(),
+  origin: text("origin"),
+  area: text("area"),
+  name: text("name").notNull(),
+  cpf: text("cpf"),
+  birthDate: date("birth_date").notNull(),
+  phoneNumbers: text("phone_numbers").array().notNull(),
+
+  extraFields: json("extra_fields").notNull(),
+
+  status: char("status", { length: idLength })
+    .references(() => leadStatus.id)
+    .notNull(),
+  comments: text("comments"),
+})
+
+export const leadRelations = relations(lead, ({ one }) => ({
+  asignee: one(user, { fields: [lead.asignee], references: [user.id] }),
+  status: one(leadStatus, {
+    fields: [lead.status],
+    references: [leadStatus.id],
+  }),
+}))
+
 //
 // types and schemas
 
@@ -105,6 +150,12 @@ export const newCampaignSchema = createInsertSchema(campaign)
 export const saleSchema = createSelectSchema(sale)
 export const newSaleSchema = createInsertSchema(sale)
 
+export const leadStatusSchema = createSelectSchema(leadStatus)
+export const newLeadStatusSchema = createInsertSchema(leadStatus)
+
+export const leadSchema = createSelectSchema(lead)
+export const newLeadSchema = createInsertSchema(lead)
+
 export type CaptationType = z.infer<ReturnType<typeof captationTypeSchema>>
 export type SaleArea = z.infer<ReturnType<typeof saleAreaSchema>>
 export type UserRole = z.infer<ReturnType<typeof userRoleSchmea>>
@@ -117,3 +168,9 @@ export type NewSale = z.infer<typeof newSaleSchema>
 
 export type Campaign = z.infer<typeof campaignSchema>
 export type NewCampaign = z.infer<typeof newCampaignSchema>
+
+export type LeadStatus = z.infer<typeof leadStatusSchema>
+export type NewLeadStatus = z.infer<typeof leadStatusSchema>
+
+export type Lead = z.infer<typeof leadSchema>
+export type NewLead = z.infer<typeof leadSchema>
