@@ -1,21 +1,31 @@
 import {
+  type ActionFunctionArgs,
+  json,
+  type LoaderFunctionArgs,
+} from "@remix-run/node"
+import {
   Form,
   useActionData,
   useFetcher,
   useLoaderData,
 } from "@remix-run/react"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
-import React from "react"
-import { useEffect } from "react"
+import { useEffect, useId } from "react"
+import { z, ZodError } from "zod"
 
 import { toast } from "~/hooks/use-toast"
 
 import { cn, maxWidth } from "~/lib/utils"
+import { getAdminOrRedirect } from "~/lib/authGuard"
+import { error, ok, type Result } from "~/lib/result"
+
+import { userRoleSchmea } from "~/db/schema"
+
+import AuthService from "~/services/AuthService"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
 import FormGroup from "~/components/FormGroup"
-
 import {
   Input,
   Button,
@@ -25,9 +35,117 @@ import {
   Checkbox,
 } from "~/components/ui"
 
-import { getResult, type action, type loader } from "./route"
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  await getAdminOrRedirect(request)
 
-export function UsersSection() {
+  const users = await AuthService.index()
+
+  return json({ users })
+}
+
+async function handle<const M, Res>(method: M, fn: () => Promise<Res>) {
+  let result: Result<Res, ErrorT[]>
+
+  try {
+    result = ok(await fn())
+  } catch (e) {
+    if (e instanceof ZodError) {
+      const errors = e.issues.map((i) => ({
+        type: i.path.join("/"),
+        message: i.message,
+      }))
+
+      result = error(errors)
+    } else {
+      result = error([{ type: "backend", message: "unknown backend error" }])
+      console.log(e)
+    }
+  }
+
+  return { method, result }
+}
+
+const userSchema = z.object({
+  name: z.string({ required_error: "Insira o nome do usuário" }),
+  password: z.string({ required_error: "Insira uma senha para o usuário" }),
+  role: userRoleSchmea({ invalid_type_error: "Tipo de usuário inválido" }),
+})
+const updateUserSchema = userSchema.partial().extend({
+  id: z.string(),
+})
+
+async function handleNewUser(data: Record<string, unknown>) {
+  if (data.role === "on") {
+    data.role = "ADMIN"
+  } else {
+    data.role = "SELLER"
+  }
+
+  const parsed = userSchema.parse(data)
+
+  return await AuthService.create(parsed)
+}
+
+async function handleUpdateUser(data: Record<string, unknown>) {
+  if (data.role === "on") {
+    data.role = "ADMIN"
+  } else {
+    data.role = "SELLER"
+  }
+
+  const parsed = updateUserSchema.parse(data)
+
+  if (parsed.password) {
+    await AuthService.changePassword(parsed.id, parsed.password)
+  }
+
+  return await AuthService.updateUser(parsed.id, parsed)
+}
+
+async function handleDeleteUser(data: Record<string, unknown>) {
+  const { id } = data
+  if (!id) return
+
+  await AuthService.delete(String(id))
+}
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  await getAdminOrRedirect(request)
+
+  const formData = await request.formData()
+
+  const data: Record<string, unknown> = {}
+
+  for (const [field, value] of formData) {
+    if (value) {
+      data[field] = String(value)
+    }
+  }
+
+  if (request.method === "DELETE") {
+    return handle("DELETE", () => handleDeleteUser(data))
+  }
+  if (request.method === "POST") {
+    return handle("POST", () => handleNewUser(data))
+  }
+  if (request.method === "PUT") {
+    return handle("PUT", () => handleUpdateUser(data))
+  }
+  console.log("method not implemented")
+
+  return {
+    method: request.method,
+    type: data.actionType,
+    result: error([
+      {
+        type: "not implemented",
+        message: `method: ${request.method}, type: ${data.actionType} is not implemented`,
+      },
+    ]),
+  }
+}
+
+export default function Users() {
   const { users } = useLoaderData<typeof loader>()
 
   return (
@@ -175,19 +293,23 @@ function BasicUserFormFields({ user }: BasicUserFormFieldsProps) {
 function NewUserModal() {
   const response = useActionData<typeof action>()
 
-  const postUserAction = getResult(response, "POST", "user")
+  let postUserAction: typeof response = undefined
+
+  if (response?.method === "POST") {
+    postUserAction = response
+  }
 
   let errors: ErrorT[] = []
-  if (postUserAction && !postUserAction.ok) {
-    errors = postUserAction.error
+  if (postUserAction && !postUserAction.result.ok) {
+    errors = postUserAction.result.error
   }
 
   useEffect(() => {
     if (!postUserAction) return
-    if (postUserAction.ok) {
+    if (postUserAction.result.ok) {
       toast({ title: "Usuário criado com sucesso!" })
-      console.log(postUserAction.value)
-    } else if (postUserAction.error.find((e) => e.type === "backend")) {
+      console.log(postUserAction.result.value)
+    } else if (postUserAction.result.error.find((e) => e.type === "backend")) {
       toast({
         title: "Erro desconhecido",
         description: "Não foi possível criar o usuário :(",
@@ -228,22 +350,26 @@ type EditUserModalProps = {
 }
 
 function EditUserModal({ children, id, name, isAdmin }: EditUserModalProps) {
-  const fetcher = useFetcher<typeof action>({ key: React.useId() })
+  const fetcher = useFetcher<typeof action>({ key: useId() })
   const response = fetcher.data
 
-  const putUserAction = getResult(response, "PUT", "user")
+  let putUserAction: typeof response = undefined
+
+  if (response?.method === "PUT") {
+    putUserAction = response
+  }
 
   let errors: ErrorT[] = []
-  if (putUserAction && !putUserAction.ok) {
-    errors = putUserAction.error
+  if (putUserAction && !putUserAction.result.ok) {
+    errors = putUserAction.result.error
   }
 
   useEffect(() => {
     if (!putUserAction) return
-    if (putUserAction.ok) {
+    if (putUserAction.result.ok) {
       toast({ title: "Usuário editado!" })
-      console.log(putUserAction.value)
-    } else if (putUserAction.error.find((e) => e.type === "backend")) {
+      console.log(putUserAction.result.value)
+    } else if (putUserAction.result.error.find((e) => e.type === "backend")) {
       toast({
         title: "Erro desconhecido",
         description: "Não foi possível editar o usuário :(",
