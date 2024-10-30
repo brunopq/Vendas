@@ -3,7 +3,9 @@ import { db } from "~/db"
 import { lead, type Lead, type NewLead } from "~/db/schema"
 
 export type DomainLead = Lead
-export type DomainNewLead = Omit<NewLead, "id"> & { phoneNumbers: string[] }
+export type DomainNewLead = Omit<NewLead, "id" | "phoneNumbers"> & {
+  phoneNumbers: string[]
+}
 
 class LeadService {
   async index() {
