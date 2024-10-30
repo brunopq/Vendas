@@ -17,23 +17,24 @@ export default function FormGroup({
 }: FormGroupProps) {
   const errorContext = useError({ validateProvider: false })
 
-  const error = errorContext?.errors.find((error) => error.type === name)
-  const hasError = error?.type === name
+  const error = errorContext?.errors.find((error) => error.type.includes(name))
+  const hasError = error?.type.includes(name)
 
   const removeErrors = () =>
-    errorContext?.setErrors((p) => p.filter((e) => e.type !== name))
+    errorContext?.setErrors((p) => p.filter((e) => e.type.includes(name)))
 
   return (
     <div className={cn(className)}>
-      <label className="block text-sm" htmlFor={name}>
+      <label className="col-span-full block text-sm" htmlFor={name}>
         {label}
       </label>
 
       {typeof children === "function" ? children(removeErrors) : children}
 
       {hasError && (
-        <label htmlFor={name} className="text-red-600">
-          {error.message}
+        <label htmlFor={name} className="col-span-full text-red-600">
+          {/* biome-ignore lint/style/noNonNullAssertion: error is checked by hasError var */}
+          {error!.message}
         </label>
       )}
     </div>
