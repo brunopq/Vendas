@@ -26,6 +26,24 @@ class AuthService {
     return users
   }
 
+  async getByName(name: string): Promise<DomainUser> {
+    const user = await db.query.user.findFirst({
+      where: (user, { eq }) => eq(user.name, name),
+      columns: {
+        id: true,
+        name: true,
+        role: true,
+        passwordHash: false,
+      },
+    })
+
+    if (!user) {
+      throw new Error("User not found")
+    }
+
+    return user
+  }
+
   async login(userInfo: LoginUser): Promise<DomainUser> {
     const user = await db.query.user.findFirst({
       where: ({ name }, { eq }) => eq(name, userInfo.name),
