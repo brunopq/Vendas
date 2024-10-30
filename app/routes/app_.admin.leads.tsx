@@ -229,15 +229,25 @@ function BaseLeadFormFields() {
   return (
     <>
       <FormGroup name="origin" label="Origem do lead">
-        <Input placeholder="Origem..." name="origin" />
+        {(removeErrors) => (
+          <Input
+            onChange={removeErrors}
+            placeholder="Origem..."
+            name="origin"
+          />
+        )}
       </FormGroup>
 
       <FormGroup name="date" label="Data">
-        <Input name="date" type="date" />
+        {(removeErrors) => (
+          <Input onChange={removeErrors} name="date" type="date" />
+        )}
       </FormGroup>
 
       <FormGroup name="name" label="Nome do cliente">
-        <Input name="name" placeholder="Nome..." />
+        {(removeErrors) => (
+          <Input onChange={removeErrors} name="name" placeholder="Nome..." />
+        )}
       </FormGroup>
 
       <FormGroup name="cpf" label="CPF">
@@ -250,11 +260,13 @@ function BaseLeadFormFields() {
       </FormGroup>
 
       <FormGroup name="birthDate" label="Data de nascimento">
-        <Input name="birthDate" type="date" />
+        {(removeErrors) => (
+          <Input onChange={removeErrors} name="birthDate" type="date" />
+        )}
       </FormGroup>
 
       <FormGroup name="area" label="Área">
-        <Input name="area" placeholder="Área" />
+        <Input name="area" placeholder="Área..." />
       </FormGroup>
 
       <FormGroup
