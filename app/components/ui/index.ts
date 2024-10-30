@@ -8,6 +8,7 @@ import * as BaseSelect from "./select"
 import * as BaseTable from "./table"
 import { Textarea } from "./textarea"
 import * as BaseTabs from "./tabs"
+import * as BasePopover from "./popover"
 
 const Dialog = {
   Root: BaseDialog.Dialog,
@@ -76,6 +77,12 @@ const Tabs = {
   Content: BaseTabs.TabsContent,
 }
 
+const Popover = {
+  Root: BasePopover.Popover,
+  Content: BasePopover.PopoverContent,
+  Trigger: BasePopover.PopoverTrigger,
+}
+
 export {
   Button,
   Checkbox,
@@ -88,4 +95,5 @@ export {
   Table,
   Textarea,
   Tabs,
+  Popover,
 }
