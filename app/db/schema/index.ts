@@ -95,6 +95,7 @@ export const leadStatus = pgTable("lead_status", {
     .references(() => user.id)
     .notNull(),
   active: boolean("active").notNull(),
+  isDefault: boolean("is_default").default(false),
 })
 
 export const leadStatusRelations = relations(leadStatus, ({ one, many }) => ({
@@ -104,11 +105,9 @@ export const leadStatusRelations = relations(leadStatus, ({ one, many }) => ({
 
 export const lead = pgTable("leads", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
-  asignee: char("asignee", { length: idLength })
-    .references(() => user.id)
-    .notNull(),
+  asignee: char("asignee", { length: idLength }).references(() => user.id),
   date: date("date").notNull(),
-  origin: text("origin"),
+  origin: text("origin").notNull(),
   area: text("area"),
   name: text("name").notNull(),
   cpf: text("cpf"),
