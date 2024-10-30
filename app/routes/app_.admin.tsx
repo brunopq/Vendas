@@ -1,7 +1,7 @@
 import type { MetaFunction } from "@remix-run/node"
-import { Link, Outlet } from "@remix-run/react"
+import { Link, Outlet, useLocation } from "@remix-run/react"
 
-import { maxWidth } from "~/lib/utils"
+import { cn, maxWidth } from "~/lib/utils"
 
 export const meta: MetaFunction = () => [
   {
@@ -10,21 +10,52 @@ export const meta: MetaFunction = () => [
 ]
 
 export default function Admin() {
+  const location = useLocation()
+
+  const isLinkActive = (path: string) => location.pathname.includes(path)
+
   return (
     <>
       <nav className={maxWidth("flex items-center justify-between gap-4 py-4")}>
         <strong className="font-semibold text-lg">Admin</strong>
+
+        <ul className="flex items-center justify-between gap-2">
+          <li>
+            <Link
+              className={cn(
+                "underline-offset-2 transition-colors hover:text-primary-600",
+                isLinkActive("leads") && "underline",
+              )}
+              to="leads"
+            >
+              leads
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={cn(
+                "underline-offset-2 transition-colors hover:text-primary-600",
+                isLinkActive("usuarios") && "underline",
+              )}
+              to="usuarios"
+            >
+              usuários
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={cn(
+                "underline-offset-2 transition-colors hover:text-primary-600",
+                isLinkActive("campanhas") && "underline",
+              )}
+              to="campanhas"
+            >
+              campanhas
+            </Link>
+          </li>
+        </ul>
       </nav>
       <hr className="border-primary-300" />
-      <Link className="ml-4" to="leads">
-        leads
-      </Link>
-      <Link className="ml-4" to="usuarios">
-        usuários
-      </Link>
-      <Link className="ml-4" to="campanhas">
-        campanhas
-      </Link>
 
       <Outlet />
 
