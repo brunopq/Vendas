@@ -21,7 +21,7 @@ export default function FormGroup({
   const hasError = error?.type.includes(name)
 
   const removeErrors = () =>
-    errorContext?.setErrors((p) => p.filter((e) => e.type.includes(name)))
+    errorContext?.setErrors((p) => p.filter((e) => !e.type.includes(name)))
 
   return (
     <div className={cn(className)}>
