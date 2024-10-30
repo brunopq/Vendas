@@ -1,5 +1,16 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react"
-import { Form, useActionData, useLoaderData } from "@remix-run/react"
+import React, {
+  useEffect,
+  useId,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react"
+import {
+  Form,
+  useActionData,
+  useFetcher,
+  useLoaderData,
+} from "@remix-run/react"
 import { Plus, Trash2 } from "lucide-react"
 import { maxWidth } from "~/lib/utils"
 import {
@@ -8,6 +19,7 @@ import {
   type LoaderFunctionArgs,
 } from "@remix-run/node"
 import { z, ZodError } from "zod"
+import { format } from "date-fns"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { error, ok, type Result } from "~/lib/result"
@@ -20,8 +32,9 @@ import { toast } from "~/hooks/use-toast"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
-import { Button, Dialog, Input, Table } from "~/components/ui"
+import { Button, Dialog, Input, Popover, Select, Table } from "~/components/ui"
 import FormGroup from "~/components/FormGroup"
+import AuthService from "~/services/AuthService"
 
 const phoneNumberSchema = z
   .string()
@@ -108,41 +121,60 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
   }
 
-  return json(
-    await handle("POST", async () => {
-      const parsed = payloadSchema.parse(data)
+  if (request.method === "PATCH") {
+    return json(
+      await handle("POST", async () => {
+        const schema = z.object({
+          id: z.string(),
+          asignee: z.string(),
+        })
 
-      const status = await LeadStatusService.getDefaultStatus()
+        const { id, asignee } = schema.parse(data)
 
-      const dto = {
-        area: parsed.area ?? null,
-        asignee: null,
-        birthDate: parsed.birthDate,
-        comments: null,
-        cpf: parsed.cpf ?? null,
-        date: parsed.date,
-        extraFields: parsed.extraFields,
-        name: parsed.name,
-        origin: parsed.origin,
-        phoneNumbers: parsed.phoneNumbers,
-        status: status.id,
-      } satisfies DomainNewLead
+        return await LeadService.assign(id, asignee)
+      }),
+    )
+  }
 
-      return await LeadService.create(dto)
-    }),
-  )
+  if (request.method === "POST") {
+    return json(
+      await handle("POST", async () => {
+        const parsed = payloadSchema.parse(data)
+
+        const status = await LeadStatusService.getDefaultStatus()
+
+        const dto = {
+          area: parsed.area ?? null,
+          asignee: null,
+          birthDate: parsed.birthDate,
+          comments: null,
+          cpf: parsed.cpf ?? null,
+          date: parsed.date,
+          extraFields: parsed.extraFields,
+          name: parsed.name,
+          origin: parsed.origin,
+          phoneNumbers: parsed.phoneNumbers,
+          status: status.id,
+        } satisfies DomainNewLead
+
+        return await LeadService.create(dto)
+      }),
+    )
+  }
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getAdminOrRedirect(request)
 
   const leads = await LeadService.index()
+  const users = await AuthService.index()
 
-  return json({ leads })
+  return json({ leads, users })
 }
 
 export default function Leads() {
-  const { leads } = useLoaderData<typeof loader>()
+  const { leads, users } = useLoaderData<typeof loader>()
+  const fetcher = useFetcher({ key: useId() })
 
   return (
     <section className={maxWidth("mt-8")}>
@@ -163,10 +195,13 @@ export default function Leads() {
           <Table.Row>
             <Table.Head className="w-0">Fonte</Table.Head>
             <Table.Head>Cliente</Table.Head>
+            <Table.Head>Vendedor</Table.Head>
+            <Table.Head>Status</Table.Head>
+            <Table.Head>CPF</Table.Head>
             <Table.Head>Data</Table.Head>
             <Table.Head>Área</Table.Head>
             <Table.Head>Contato</Table.Head>
-            <Table.Head className="w-0">{/*dropdown*/}</Table.Head>
+            <Table.Head>Outras informações</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -174,14 +209,84 @@ export default function Leads() {
             <Table.Row key={c.id}>
               <Table.Cell>{c.origin}</Table.Cell>
               <Table.Cell>{c.name}</Table.Cell>
-              <Table.Cell>{c.date}</Table.Cell>
+              <Table.Cell className="text-nowrap">
+                {c.asignee ? (
+                  c.asignee.name
+                ) : (
+                  <Select.Root
+                    onValueChange={(v) => {
+                      fetcher.submit(
+                        { id: c.id, asignee: v },
+                        { method: "PATCH" },
+                      )
+                    }}
+                  >
+                    <Select.Trigger className="px-2 py-1 text-sm">
+                      <Select.Value placeholder="Não designado" />
+                    </Select.Trigger>
+                    <Select.Content className="text-sm">
+                      {users.map((u) => (
+                        <Select.Item key={u.id} value={u.id}>
+                          {u.name}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              </Table.Cell>
+              <Table.Cell>
+                <span className="h-min text-nowrap rounded-full bg-primary-100 px-3 py-1 text-primary-800 text-sm">
+                  {c.status.name}
+                </span>
+              </Table.Cell>
+              <Table.Cell>{c.cpf && cpf(c.cpf)}</Table.Cell>
+              <Table.Cell>{format(c.date, "dd/MM/yyyy")}</Table.Cell>
               <Table.Cell>{c.area}</Table.Cell>
-              <Table.Cell>{c.phoneNumbers.map((p) => p)}</Table.Cell>
+              <Table.Cell>
+                {c.phoneNumbers.map((p) => (
+                  <p key={p} className="text-nowrap">
+                    {phone(p)}
+                  </p>
+                ))}
+              </Table.Cell>
+              <Table.Cell>
+                <ExtraFields fields={c.extraFields as Record<string, string>} />
+              </Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
       </Table.Root>
     </section>
+  )
+}
+
+type ExtraFieldsProps = {
+  fields: Record<string, string>
+}
+
+function ExtraFields({ fields }: ExtraFieldsProps) {
+  return (
+    <Popover.Root>
+      <Button variant="secondary" size="sm" asChild>
+        <Popover.Trigger>
+          {Object.entries(fields).length} campo
+          {Object.entries(fields).length !== 1 && "s"}
+        </Popover.Trigger>
+      </Button>
+      <Popover.Content className="grid grid-cols-2 gap-x-4 gap-y-1">
+        <div className="text-sm text-zinc-600">Campo</div>
+        <div className="text-sm text-zinc-600">Valor</div>
+
+        <hr className="col-span-full border-primary-400 border-dashed" />
+
+        {Object.entries(fields).map(([k, v]) => (
+          <React.Fragment key={k}>
+            <span>{k}</span>
+            <span>{v}</span>
+          </React.Fragment>
+        ))}
+      </Popover.Content>
+    </Popover.Root>
   )
 }
 

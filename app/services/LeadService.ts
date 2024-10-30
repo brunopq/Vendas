@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm"
 import { db } from "~/db"
 
 import { lead, type Lead, type NewLead } from "~/db/schema"
@@ -29,6 +30,16 @@ class LeadService {
     const [created] = await db.insert(lead).values(newLead).returning()
 
     return created
+  }
+
+  async assign(leadId: string, asignee: string) {
+    const [updated] = await db
+      .update(lead)
+      .set({ asignee })
+      .where(eq(lead.id, leadId))
+      .returning()
+
+    return updated
   }
 }
 
