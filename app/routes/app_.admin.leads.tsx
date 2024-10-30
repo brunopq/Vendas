@@ -11,7 +11,9 @@ import { z, ZodError } from "zod"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { error, ok, type Result } from "~/lib/result"
+import { cpf, phone } from "~/lib/formatters"
 
+import LeadStatusService from "~/services/LeadStatusService"
 import LeadService, { type DomainNewLead } from "~/services/LeadService"
 
 import { toast } from "~/hooks/use-toast"
@@ -20,7 +22,6 @@ import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
 import { Button, Dialog, Input, Table } from "~/components/ui"
 import FormGroup from "~/components/FormGroup"
-import LeadStatusService from "~/services/LeadStatusService"
 
 const phoneNumberSchema = z
   .string()
@@ -185,7 +186,7 @@ export default function Leads() {
 }
 
 function BaseLeadFormFields() {
-  const [cpf, setCpf] = useState<string>()
+  const [cpfField, setCpfField] = useState<string>()
   const [phoneNumbers, setPhoneNumbers] = useState<
     { phone: string; id: number }[]
   >([])
@@ -207,23 +208,6 @@ function BaseLeadFormFields() {
       )
       return [...prevState]
     })
-  }
-
-  const formatCpf = (value: string) => {
-    return value
-      .slice(0, 14)
-      .replace(/\D/g, "")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
-  }
-
-  const formatPhone = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d)/, "$1-$2")
-      .replace(/(-\d{4})\d+?$/, "$1")
   }
 
   return (
@@ -254,8 +238,8 @@ function BaseLeadFormFields() {
         <Input
           name="cpf"
           placeholder="000.000.000-00"
-          value={cpf}
-          onChange={(e) => setCpf(formatCpf(e.target.value))}
+          value={cpfField}
+          onChange={(e) => setCpfField(cpf(e.target.value))}
         />
       </FormGroup>
 
@@ -284,7 +268,7 @@ function BaseLeadFormFields() {
             <Input
               onChange={(e) =>
                 setById(setPhoneNumbers, p, {
-                  phone: formatPhone(e.target.value),
+                  phone: phone(e.target.value),
                 })
               }
               value={p.phone}
