@@ -3,7 +3,8 @@ import { format } from "date-fns"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { ClientOnly } from "remix-utils/client-only"
-import { cn } from "~/lib/utils"
+
+import { glass } from "~/lib/utils"
 
 type LineChartProps<T extends { id: string }> = {
   data: T[]
@@ -164,8 +165,8 @@ export function LineChart<T extends { id: string }>({
             return createPortal(
               <div
                 data-open={visible}
-                className={cn(
-                  "-translate-x-1/2 pointer-events-none absolute z-20 rounded border border-zinc-300 bg-zinc-100/50 p-2 backdrop-blur-lg",
+                className={glass(
+                  "-translate-x-1/2 pointer-events-none absolute z-20 rounded border border-zinc-300 p-2",
                   "-translate-y-[calc(100%-0.25rem)] data-[open=true]:-translate-y-[calc(100%+0.5rem)] scale-90 opacity-0 transition-[opacity,transform,left,top] data-[open=true]:scale-100 data-[open=true]:opacity-100",
                 )}
                 style={{

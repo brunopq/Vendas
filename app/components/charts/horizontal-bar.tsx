@@ -2,7 +2,8 @@ import * as d3 from "d3"
 import { useCallback, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { ClientOnly } from "remix-utils/client-only"
-import { cn } from "~/lib/utils"
+
+import { glass } from "~/lib/utils"
 
 type HorizontalBarChartProps<T extends { id: string }> = {
   data: T[]
@@ -177,8 +178,8 @@ function Tooltip({ children, open }: { children: JSX.Element; open: boolean }) {
         createPortal(
           <div
             data-open={open}
-            className={cn(
-              "-translate-x-1/2 pointer-events-none absolute z-20 rounded border border-zinc-300 bg-zinc-100/50 p-2 backdrop-blur-lg",
+            className={glass(
+              "-translate-x-1/2 pointer-events-none absolute z-20 rounded border border-zinc-300 p-2",
               "-translate-y-[calc(100%-0.25rem)] data-[open=true]:-translate-y-[calc(100%+0.5rem)] scale-90 opacity-0 transition-[opacity,transform] data-[open=true]:scale-100 data-[open=true]:opacity-100",
             )}
             style={{
