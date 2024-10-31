@@ -7,6 +7,7 @@ import React, {
 } from "react"
 import {
   Form,
+  Link,
   useActionData,
   useFetcher,
   useLoaderData,
@@ -182,6 +183,10 @@ export default function Leads() {
         <h2 className="font-medium text-2xl">Leads</h2>
 
         <div className="flex items-center justify-between gap-2">
+          <Button variant="link" asChild>
+            <Link to="lista">Carregar lista</Link>
+          </Button>
+
           <NewLeadModal>
             <Button icon="left" className="text-sm">
               <Plus /> Novo
