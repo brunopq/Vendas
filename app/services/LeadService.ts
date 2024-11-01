@@ -3,7 +3,18 @@ import { db } from "~/db"
 
 import { lead, type Lead, type NewLead } from "~/db/schema"
 
-export type DomainLead = Lead
+import type { DomainUser } from "./AuthService"
+import type { DomainLeadStatus } from "./LeadStatusService"
+
+export type DomainLead = Omit<
+  Lead,
+  "phoneNumbers" | "status" | "extraFields" | "asignee"
+> & {
+  phoneNumbers: string[]
+  asignee: DomainUser | null
+  status: DomainLeadStatus | null
+  extraFields?: unknown
+}
 export type DomainNewLead = Omit<NewLead, "id" | "phoneNumbers"> & {
   phoneNumbers: string[]
 }

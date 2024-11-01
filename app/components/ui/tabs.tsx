@@ -20,14 +20,22 @@ const TabsList = React.forwardRef<
 ))
 TabsList.displayName = TabsPrimitive.List.displayName
 
+type TabsTriggerProps = React.ComponentPropsWithoutRef<
+  typeof TabsPrimitive.Trigger
+> & {
+  size?: "sm" | "md" | "lg"
+}
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
+  TabsTriggerProps
+>(({ className, size = "md", ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1 font-medium text-sm transition-colors hover:bg-primary-50 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-primary-900 dark:ring-offset-zinc-950 dark:data-[state=active]:bg-zinc-950 dark:data-[state=active]:text-zinc-50 dark:focus-visible:ring-zinc-300",
+      "inline-flex items-center justify-center whitespace-nowrap transition-colors hover:bg-primary-50 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-primary-900 dark:ring-offset-zinc-950 dark:data-[state=active]:bg-zinc-950 dark:data-[state=active]:text-zinc-50 dark:focus-visible:ring-zinc-300",
+      size === "sm" && "rounded-sm px-3 py-1 font-medium text-sm",
+      size === "md" && "rounded-sm px-3 py-1.5 font-medium",
+      size === "lg" && "rounded-md px-5 py-2 font-medium text-lg",
       className,
     )}
     {...props}
