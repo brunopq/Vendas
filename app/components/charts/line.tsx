@@ -90,6 +90,10 @@ export function LineChart<T extends { id: string }>({
 
   const path = line(data)
 
+  if (!path) {
+    return
+  }
+
   let closest: T = data[0]
 
   for (const d of data) {
