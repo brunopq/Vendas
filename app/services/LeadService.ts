@@ -43,6 +43,12 @@ class LeadService {
     return created
   }
 
+  async createMany(newLeads: DomainNewLead[]) {
+    const created = await db.insert(lead).values(newLeads).returning()
+
+    return created
+  }
+
   async assign(leadId: string, asignee: string) {
     const [updated] = await db
       .update(lead)

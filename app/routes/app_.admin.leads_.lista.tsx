@@ -17,6 +17,8 @@ import { cpf, phone } from "~/lib/formatters"
 import LeadStatusService from "~/services/LeadStatusService"
 import { z } from "zod"
 import { leadSchema, newLeadSchema } from "~/db/schema"
+import LeadService from "~/services/LeadService"
+import { format, parse } from "date-fns"
 
 async function handle<const M, Res>(method: M, fn: () => Promise<Res>) {}
 
@@ -56,10 +58,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const textDecoder = new TextDecoder()
   const str = textDecoder.decode(buf)
 
+  const defaultStatus = await LeadStatusService.getDefaultStatus()
+
   Papa.parse(str, {
     header: true,
     skipEmptyLines: true,
-    complete(results) {
+    async complete(results) {
       console.log(results)
       if (results.errors.length > 0) {
         return
@@ -96,19 +100,35 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             }
           }
 
+          let date = get(d, parsed.date)
+
+          if (date) {
+            date = format(parse(date, "dd/MM/yyyy", new Date()), "yyyy-MM-dd")
+          }
+
+          let birthDate = get(d, parsed.birthDate)
+
+          if (birthDate) {
+            birthDate = format(
+              parse(birthDate, "dd/MM/yyyy", new Date()),
+              "yyyy-MM-dd",
+            )
+          }
+
           const lead = {
             area: get(d, parsed.area),
             asignee: parsed.asignee,
-            birthDate: get(d, parsed.birthDate),
+            birthDate,
             comments: null,
             cpf: get(d, parsed.cpf),
-            date: get(d, parsed.date),
+            date: date,
             name: get(d, parsed.name),
-            phoneNumbers: get(d, parsed.phoneNumbers)
-              ?.split(",")
-              .map((a) => a.trim()),
+            phoneNumbers:
+              get(d, parsed.phoneNumbers)
+                ?.split(",")
+                .map((a) => a.trim()) || [],
             origin: get(d, parsed.origin),
-            status: undefined,
+            status: defaultStatus.id,
             extraFields: extraFieldsValues,
           } satisfies Partial<DomainNewLead>
 
@@ -117,6 +137,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       )
 
       console.log(leads)
+
+      const created = await LeadService.createMany(leads)
+      console.log(created)
     },
   })
 
