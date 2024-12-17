@@ -7,18 +7,11 @@ import {
   type Campaign,
   type NewCampaign as DbNewCampaign,
 } from "~/db/schema"
+import { validateDate } from "~/lib/verifyMonthAndYear"
 
 export type DomainCampaign = Campaign
 export type NewCampaign = DbNewCampaign
 export type UpdateCampaign = Partial<Omit<DomainCampaign, "id">>
-
-function validateDate(month: number, year: number): Date {
-  if (month < 1 || month > 12 || year < 2000) {
-    throw new Error("date out of range")
-  }
-
-  return new Date(year, month - 1)
-}
 
 class CampaignService {
   async index() {

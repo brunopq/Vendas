@@ -10,20 +10,13 @@ import type {
 } from "~/db/schema"
 import CampaignService from "./CampaignService"
 import { utc } from "@date-fns/utc"
+import { validateDate } from "~/lib/verifyMonthAndYear"
 
 export type DomainSale = DbSale
 export type NewSale = DbNewSale
 export { newSaleSchema }
 
 export type CaptationType = DbCaptationType
-
-function validateDate(month: number, year: number): Date {
-  if (month < 1 || month > 12 || year < 2000) {
-    throw new Error("date out of range")
-  }
-
-  return new Date(year, month - 1)
-}
 
 class SalesService {
   async index() {
