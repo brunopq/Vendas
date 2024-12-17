@@ -8,7 +8,7 @@ import {
 } from "@remix-run/react"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import React, { useEffect, useState } from "react"
-import { format, parse } from "date-fns"
+import { format, intlFormat, parse } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { utc } from "@date-fns/utc"
 import { z, ZodError } from "zod"
@@ -284,18 +284,17 @@ export default function Campaigns() {
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head className="w-0">Id</Table.Head>
             <Table.Head>Nome</Table.Head>
             <Table.Head>Mês</Table.Head>
             <Table.Head>Meta de vendas</Table.Head>
             <Table.Head>Comissão</Table.Head>
+            <Table.Head>Comissão individual</Table.Head>
             <Table.Head className="w-0">{/*dropdown*/}</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
           {campaigns.map((c) => (
             <Table.Row key={c.id}>
-              <Table.Cell className="text-sm text-zinc-600">{c.id}</Table.Cell>
               <Table.Cell>{c.name}</Table.Cell>
               <Table.Cell>
                 {format(
@@ -306,6 +305,7 @@ export default function Campaigns() {
               </Table.Cell>
               <Table.Cell>{c.goal}</Table.Cell>
               <Table.Cell>{brl(c.prize)}</Table.Cell>
+              <Table.Cell>{brl(c.individualPrize)}</Table.Cell>
               <Table.Cell className="w-0">
                 <CampaignDropdown campaign={c} />
               </Table.Cell>
@@ -363,6 +363,9 @@ function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
   const [goal, setGoal] = useState<number>(campaign?.goal ?? 0)
   const [prize, setPrize] = useState<number>(
     campaign?.prize ? currencyToNumber(campaign.prize) : 0,
+  )
+  const [individualPrize, setIndividualPrize] = useState<number>(
+    campaign?.individualPrize ? currencyToNumber(campaign.individualPrize) : 0,
   )
 
   return (
@@ -445,41 +448,62 @@ function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
           />
         )}
       </FormGroup>
-      <FormGroup name="prize" label="Comissão">
-        {(removeError) => (
-          <BrlInput
-            onInput={(e) => {
-              removeError()
-              setPrize(currencyToNumber(e.currentTarget.value))
-            }}
-            defaultValue={brl(prize)}
-            name="prize"
-          />
-        )}
-      </FormGroup>
 
-      <div className="mt-2 grid grid-cols-3 text-sm">
-        <strong className="col-span-3 mb-1 text-base">Metas: </strong>
+      <div className="grid grid-cols-2 gap-4">
+        <FormGroup name="prize" label="Comissão">
+          {(removeError) => (
+            <BrlInput
+              onInput={(e) => {
+                removeError()
+                setPrize(currencyToNumber(e.currentTarget.value))
+              }}
+              defaultValue={brl(prize)}
+              name="prize"
+            />
+          )}
+        </FormGroup>
+
+        <FormGroup name="individualPrize" label="Comissão individual">
+          {(removeError) => (
+            <BrlInput
+              onInput={(e) => {
+                removeError()
+                setIndividualPrize(currencyToNumber(e.currentTarget.value))
+              }}
+              defaultValue={brl(individualPrize)}
+              name="individualPrize"
+            />
+          )}
+        </FormGroup>
+      </div>
+
+      <div className="mt-2 grid grid-cols-[repeat(5,_auto)] text-sm">
+        <strong className="col-span-full mb-1 text-base">Metas: </strong>
 
         <span className="text-zinc-600">Meta</span>
-        <span className="text-zinc-600">N. de vendas</span>
-        <span className="text-zinc-600">Comissão</span>
+        <span className="text-zinc-600">Vendas total</span>
+        <span className="text-zinc-600">Comissão total</span>
+        <span className="text-zinc-600">Vendas usuário</span>
+        <span className="text-zinc-600">Comissão final</span>
 
-        <span>50%</span>
-        <span>{Math.round(goal * 0.5)}</span>
-        <span>{brl(prize * 0.5)}</span>
-
-        <span>75%</span>
-        <span>{Math.round(goal * 0.75)}</span>
-        <span>{brl(prize * 0.75)}</span>
-
-        <span>100%</span>
-        <span>{Math.round(goal * 1)}</span>
-        <span>{brl(prize * 1)}</span>
-
-        <span>110%</span>
-        <span>{Math.round(goal * 1.1)}</span>
-        <span>{brl(prize * 1.1)}</span>
+        {[0.5, 0.75, 1, 1.1].map((percent) => (
+          <React.Fragment key={percent}>
+            <span>
+              {Intl.NumberFormat("pt-br", { style: "percent" }).format(percent)}
+            </span>
+            <span>{Math.round(goal * percent)}</span>
+            <span>{brl(prize * percent)}</span>
+            {(() => {
+              const a = Math.floor(Math.random() * Math.round(goal * percent))
+              return (
+                <>
+                  <span>{a}</span>
+                  <span>{brl(individualPrize * a)}</span>
+                </>
+              )
+            })()}
+          </React.Fragment>
+        ))}
       </div>
     </>
   )
@@ -521,7 +545,7 @@ function EditCampaignModal({ children, campaign }: EditCampaignModalProps) {
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
 
-      <Dialog.Content>
+      <Dialog.Content className="[--dialog-content-max-width:_38rem]">
         <Dialog.Title>
           Editar campanha{" "}
           <strong className="font-semibold text-primary-600">
@@ -642,7 +666,7 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
 
-      <Dialog.Content className="[--dialog-content-max-width:_32rem]">
+      <Dialog.Content className="[--dialog-content-max-width:_38rem]">
         <Dialog.Header>
           <Dialog.Title>Copiar campanhas</Dialog.Title>
           <Dialog.Description>
@@ -809,7 +833,7 @@ function NewCampaignModal({ children }: { children: JSX.Element }) {
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
 
-      <Dialog.Content>
+      <Dialog.Content className="[--dialog-content-max-width:_38rem]">
         <Dialog.Title>Nova campanha</Dialog.Title>
 
         <ErrorProvider initialErrors={errors}>

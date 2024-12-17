@@ -47,6 +47,12 @@ export const campaign = pgTable("campaigns", {
   name: text("name").notNull(),
   goal: integer("goal").notNull(),
   prize: numeric("prize", { precision: 16, scale: 2 }).notNull(),
+  individualPrize: numeric("individual_prize", {
+    precision: 16,
+    scale: 2,
+  })
+    .default("0")
+    .notNull(),
   month: date("month").defaultNow().notNull(),
 })
 
