@@ -24,17 +24,6 @@ export default function Admin() {
             <Link
               className={cn(
                 "underline-offset-2 transition-colors hover:text-primary-600",
-                isLinkActive("leads") && "underline",
-              )}
-              to="leads"
-            >
-              leads
-            </Link>
-          </li>
-          <li>
-            <Link
-              className={cn(
-                "underline-offset-2 transition-colors hover:text-primary-600",
                 isLinkActive("usuarios") && "underline",
               )}
               to="usuarios"
