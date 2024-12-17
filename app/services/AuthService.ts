@@ -1,9 +1,8 @@
 import { encryptPassword, verifyPassword } from "~/lib/hashing"
-
-import type { User } from "~/db/schema"
-import { sale, user } from "~/db/schema"
-import { db } from "~/db"
 import { eq, sql } from "drizzle-orm"
+
+import { db } from "~/db"
+import { sale, user, type User } from "~/db/schema"
 
 export type DomainUser = Omit<User, "passwordHash">
 export type NewUser = Omit<DomainUser, "id"> & { password: string }

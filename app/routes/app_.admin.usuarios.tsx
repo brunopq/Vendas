@@ -23,6 +23,7 @@ import { error, ok, type Result } from "~/lib/result"
 import { userRoleSchmea } from "~/db/schema"
 
 import AuthService from "~/services/AuthService"
+import UserService from "~/services/UserService"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
@@ -37,10 +38,24 @@ import {
   Checkbox,
 } from "~/components/ui"
 
+const maybeNumber = z.coerce.number().nullable()
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getAdminOrRedirect(request)
 
-  const users = await AuthService.index()
+  const url = new URL(request.url)
+
+  let month = maybeNumber.parse(url.searchParams.get("mes"))
+  if (!month) {
+    month = new Date().getMonth() + 1
+  }
+
+  let year = maybeNumber.parse(url.searchParams.get("ano"))
+  if (!year) {
+    year = new Date().getFullYear()
+  }
+
+  const users = await UserService.listByMonth(month, year)
 
   users.sort((a, b) => b.totalSales - a.totalSales)
 
@@ -168,10 +183,9 @@ export default function Users() {
           <DateSelection
             month={date.getMonth() + 1}
             year={date.getFullYear()}
-            onChange={({ month, year }) => {
-              console.log("ran")
+            onChange={({ month, year }) =>
               setSearchParams({ mes: String(month), ano: String(year) })
-            }}
+            }
           />
         </label>
 
