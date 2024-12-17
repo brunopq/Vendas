@@ -59,7 +59,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   users.sort((a, b) => b.totalSales - a.totalSales)
 
-  return json({ users })
+  return json({ users, month, year })
 }
 
 async function handle<const M, Res>(method: M, fn: () => Promise<Res>) {
@@ -165,7 +165,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 }
 
 export default function Users() {
-  const { users } = useLoaderData<typeof loader>()
+  const { users, month, year } = useLoaderData<typeof loader>()
 
   const [_, setSearchParams] = useSearchParams()
 
@@ -180,8 +180,8 @@ export default function Users() {
         <span className="text-sm text-zinc-800">
           Período das vendas:
           <DateSelection
-            month={date.getMonth() + 1}
-            year={date.getFullYear()}
+            month={month}
+            year={year}
             onChange={({ month, year }) =>
               setSearchParams({ mes: String(month), ano: String(year) })
             }
