@@ -13,8 +13,7 @@ import {
 } from "@tanstack/react-table"
 import { format, isBefore, isSameDay, parse } from "date-fns"
 import { z } from "zod"
-
-import { months } from "~/constants/months"
+import { utc } from "@date-fns/utc"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
 import { brl } from "~/lib/formatters"
@@ -25,13 +24,13 @@ import SalesService, {
   type CaptationType,
 } from "~/services/SalesService"
 
-import { Button, Table, Select, DropdownMenu, Tabs } from "~/components/ui"
+import { Button, Table, DropdownMenu, Tabs } from "~/components/ui"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
 import { LineChart } from "~/components/charts/line"
-import { utc } from "@date-fns/utc"
+import { DateSelection } from "~/components/DateSelection"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -90,7 +89,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export default function App() {
-  const { data } = useLoaderData<typeof loader>()
+  const { data, month, year } = useLoaderData<typeof loader>()
+  const [_, setSearchParams] = useSearchParams()
 
   const salesByCampaign: Record<string, number> = {}
   for (const sale of data.total) {
@@ -136,7 +136,14 @@ export default function App() {
         <header className="mb-4 flex items-center justify-between gap-2">
           <h2 className="font-medium text-2xl">Este mês</h2>
 
-          <DateSelection />
+          <DateSelection
+            month={month}
+            year={year}
+            onChange={({ month, year }) => {
+              console.log("ran")
+              setSearchParams({ mes: String(month), ano: String(year) })
+            }}
+          />
         </header>
 
         <div className="grid grid-cols-6 gap-4">
@@ -216,7 +223,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
+          {/* <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
             <h3 className="col-span-full mt-2 font-semibold text-lg text-primary-800">
               Vendas durante o mês
             </h3>
@@ -232,7 +239,7 @@ export default function App() {
                 value={(d) => d.count}
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="col-span-2 row-span-2 grid grid-cols-subgrid gap-2 rounded-md border border-primary-200 bg-primary-100 p-6 shadow-sm">
             <div className="col-span-2">
@@ -379,49 +386,6 @@ function CampaignsTable() {
         ),
       )}
     </div>
-  )
-}
-
-function DateSelection() {
-  const { month, year } = useLoaderData<typeof loader>()
-  const [_, setSearchParams] = useSearchParams()
-
-  return (
-    <Form className="flex gap-1">
-      <Select.Root
-        onValueChange={(v) => setSearchParams({ mes: v })}
-        name="mes"
-        defaultValue={`${month}`}
-      >
-        <Select.Trigger showIcon={false} className="w-fit py-1.5 text-sm">
-          <Select.Value placeholder="Trocar mês" />
-        </Select.Trigger>
-        <Select.Content className="max-h-64">
-          {months.map((m, i) => (
-            <Select.Item key={m} value={`${i + 1}`}>
-              {m}
-            </Select.Item>
-          ))}
-        </Select.Content>
-      </Select.Root>
-
-      <Select.Root
-        onValueChange={(v) => setSearchParams({ ano: v })}
-        name="ano"
-        defaultValue={`${year}`}
-      >
-        <Select.Trigger showIcon={false} className="w-fit py-1.5 text-sm">
-          <Select.Value placeholder="Trocar ano" />
-        </Select.Trigger>
-        <Select.Content className="max-h-64">
-          {[2023, 2024, 2025].map((a) => (
-            <Select.Item key={a} value={`${a}`}>
-              {a}
-            </Select.Item>
-          ))}
-        </Select.Content>
-      </Select.Root>
-    </Form>
   )
 }
 

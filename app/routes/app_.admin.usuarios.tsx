@@ -8,6 +8,7 @@ import {
   useActionData,
   useFetcher,
   useLoaderData,
+  useSearchParams,
 } from "@remix-run/react"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import { useEffect, useId } from "react"
@@ -26,6 +27,7 @@ import AuthService from "~/services/AuthService"
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
 
 import FormGroup from "~/components/FormGroup"
+import { DateSelection } from "~/components/DateSelection"
 import {
   Input,
   Button,
@@ -39,6 +41,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getAdminOrRedirect(request)
 
   const users = await AuthService.index()
+
+  users.sort((a, b) => b.totalSales - a.totalSales)
 
   return json({ users })
 }
@@ -148,10 +152,28 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Users() {
   const { users } = useLoaderData<typeof loader>()
 
+  const [_, setSearchParams] = useSearchParams()
+
+  const date = new Date()
+
   return (
     <section className={maxWidth("mt-8")}>
       <header className="mb-4 flex items-center justify-between gap-2">
         <h2 className="font-medium text-2xl">Usuários</h2>
+      </header>
+      <fieldset className="mb-4 flex items-center justify-between gap-6">
+        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+        <label className="text-sm text-zinc-800">
+          Período das vendas:
+          <DateSelection
+            month={date.getMonth() + 1}
+            year={date.getFullYear()}
+            onChange={({ month, year }) => {
+              console.log("ran")
+              setSearchParams({ mes: String(month), ano: String(year) })
+            }}
+          />
+        </label>
 
         <Dialog.Root>
           <Dialog.Trigger asChild>
@@ -161,7 +183,7 @@ export default function Users() {
           </Dialog.Trigger>
           <NewUserModal />
         </Dialog.Root>
-      </header>
+      </fieldset>
 
       <Table.Root>
         <Table.Header>
