@@ -177,8 +177,7 @@ export default function Users() {
         <h2 className="font-medium text-2xl">Usuários</h2>
       </header>
       <fieldset className="mb-4 flex items-center justify-between gap-6">
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-        <label className="text-sm text-zinc-800">
+        <span className="text-sm text-zinc-800">
           Período das vendas:
           <DateSelection
             month={date.getMonth() + 1}
@@ -187,7 +186,7 @@ export default function Users() {
               setSearchParams({ mes: String(month), ano: String(year) })
             }
           />
-        </label>
+        </span>
 
         <Dialog.Root>
           <Dialog.Trigger asChild>
