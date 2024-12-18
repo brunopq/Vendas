@@ -5,6 +5,7 @@ import {
 } from "@remix-run/node"
 import {
   Form,
+  Link,
   useActionData,
   useFetcher,
   useLoaderData,
@@ -169,14 +170,12 @@ export default function Users() {
 
   const [_, setSearchParams] = useSearchParams()
 
-  const date = new Date()
-
   return (
     <section className={maxWidth("mt-8")}>
       <header className="mb-4 flex items-center justify-between gap-2">
         <h2 className="font-medium text-2xl">Usuários</h2>
       </header>
-      <fieldset className="mb-4 flex items-center justify-between gap-6">
+      <fieldset className="mb-4 flex items-end justify-start gap-6">
         <span className="text-sm text-zinc-800">
           Período das vendas:
           <DateSelection
@@ -188,10 +187,24 @@ export default function Users() {
           />
         </span>
 
+        <Button asChild variant="outline" className="py-[7px] text-sm">
+          <Link
+            to={{
+              pathname: "/app/admin/relatorio",
+              search: new URLSearchParams({
+                mes: month.toString(),
+                ano: year.toString(),
+              }).toString(),
+            }}
+          >
+            Gerar relatório de metas
+          </Link>
+        </Button>
+
         <Dialog.Root>
           <Dialog.Trigger asChild>
             <Button icon="left" className="text-sm">
-              <Plus /> Novo
+              <Plus className="size-5" /> Novo
             </Button>
           </Dialog.Trigger>
           <NewUserModal />
