@@ -1,5 +1,5 @@
 import { endOfMonth, isSameMonth, startOfMonth } from "date-fns"
-import { between, eq, sql } from "drizzle-orm"
+import { and, between, eq, sql } from "drizzle-orm"
 
 import { db } from "~/db"
 import { campaign, newSaleSchema, sale } from "~/db/schema"
@@ -11,6 +11,7 @@ import type {
 import CampaignService from "./CampaignService"
 import { utc } from "@date-fns/utc"
 import { validateDate } from "~/lib/verifyMonthAndYear"
+import { s } from "node_modules/vite/dist/node/types.d-aGj9QkWt"
 
 export type DomainSale = DbSale
 export type NewSale = DbNewSale
@@ -97,7 +98,14 @@ class SalesService {
     })
   }
 
-  async getCommissionsByMonth(month: number, year: number) {
+  /**
+   * Get the collective commissions for each campaign in a given month
+   *
+   * @param month
+   * @param year
+   * @returns
+   */
+  async getCommissionsByMonth(month: number, year: number, userId = "") {
     const date = validateDate(month, year)
 
     const comissions = await db
@@ -138,6 +146,30 @@ class SalesService {
     }
 
     return comissions
+  }
+
+  async getUserSales(month: number, year: number, userId: string) {
+    const date = validateDate(month, year)
+
+    const campaigns = await db
+      .select({
+        campaign: campaign,
+        sellCount: sql<number>`cast(count(${sale.id}) as int)`,
+      })
+      .from(campaign)
+      .leftJoin(sale, eq(campaign.id, sale.campaign))
+      .where(
+        and(
+          eq(sale.seller, userId),
+          between(
+            sale.date,
+            startOfMonth(date).toDateString(),
+            endOfMonth(date).toDateString(),
+          ),
+        ),
+      )
+      .groupBy(campaign.id)
+    return campaigns
   }
 
   async create(newSale: NewSale) {

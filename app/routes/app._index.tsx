@@ -48,12 +48,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (!year) {
     year = new Date().getFullYear()
   }
-  const [data, userData, newClients, commissions] = await Promise.all([
-    SalesService.getByMonth(month, year),
-    SalesService.getByMonthAndUser(month, year, user.id),
-    SalesService.getNewClientsByMonth(month, year),
-    SalesService.getCommissionsByMonth(month, year),
-  ])
+  const [data, userData, newClients, commissions, userComissions] =
+    await Promise.all([
+      SalesService.getByMonth(month, year),
+      SalesService.getByMonthAndUser(month, year, user.id),
+      SalesService.getNewClientsByMonth(month, year),
+      SalesService.getCommissionsByMonth(month, year),
+      SalesService.getUserSales(month, year, user.id),
+    ])
 
   const repurchase: { total: number; user: number } = { total: 0, user: 0 }
 
@@ -83,7 +85,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       newClients,
       clients,
       repurchase,
-      commissions,
+      commissions: commissions.map((c) => {
+        const userSellCount =
+          userComissions.find((uc) => uc.campaign.id === c.campaign.id)
+            ?.sellCount || 0
+
+        return {
+          ...c,
+          userSellCount: userSellCount,
+          userComission: userSellCount * Number(c.campaign.individualPrize),
+        }
+      }),
     },
   })
 }
@@ -140,30 +152,29 @@ export default function App() {
             month={month}
             year={year}
             onChange={({ month, year }) => {
-              console.log("ran")
               setSearchParams({ mes: String(month), ano: String(year) })
             }}
           />
         </header>
 
         <div className="grid grid-cols-6 gap-4">
-          <div className="col-span-2 row-span-2 flex flex-col items-center rounded-md border border-primary-200 bg-primary-100 shadow-sm">
-            <h3 className="mt-2 font-semibold text-lg text-primary-800">
+          <div className="col-span-2 row-span-2 flex flex-col items-center rounded-md border border-primary-200 bg-primary-100 p-4 shadow-sm">
+            <h3 className="mb-4 font-semibold text-lg text-primary-800">
               Campanhas
             </h3>
-            <Tabs.Root className="w-full" defaultValue="graph">
+            {/* <Tabs.Root className="w-full" defaultValue="graph">
               <Tabs.List>
                 <Tabs.Trigger value="graph">Gráfico</Tabs.Trigger>
                 <Tabs.Trigger value="table">Tabela</Tabs.Trigger>
               </Tabs.List>
 
-              <Tabs.Content value="graph">
-                <CampaignsChart salesByCampaign={salesByCampaign} />
-              </Tabs.Content>
+              <Tabs.Content value="graph"> */}
+            <CampaignsChart salesByCampaign={salesByCampaign} />
+            {/* </Tabs.Content>
               <Tabs.Content value="table">
                 <CampaignsTable />
               </Tabs.Content>
-            </Tabs.Root>
+            </Tabs.Root> */}
           </div>
 
           <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-teal-300 bg-teal-100 p-6 shadow-sm">
@@ -202,23 +213,45 @@ export default function App() {
                         </strong>
                       </p>
                       <p className="text-sm">
-                        Vendas: {item.sellCount} / {item.campaign.goal}
+                        Meta: {item.sellCount} / {item.campaign.goal}
                       </p>
                       <p className="text-sm">
                         Comissão: {brl(item.comission)} /{" "}
                         {brl(item.campaign.prize)}
                       </p>
+
+                      <p className="text-sm">
+                        Suas vendas: {item.userSellCount}
+                      </p>
+
+                      {item.userSellCount > 0 && (
+                        <p className="text-sm">
+                          Sua comissão: {brl(item.userComission)}
+                        </p>
+                      )}
                     </>
                   )}
                 />
               )}
             </div>
 
-            <div className="col-span-2 row-span-2 grid grid-rows-subgrid text-center">
-              <h3>Total</h3>
+            <div className="row-span-2 grid grid-rows-subgrid text-center">
+              <h3>Meta geral</h3>
 
               <strong className="self-center text-xl">
                 {brl(data.commissions.reduce((acc, c) => acc + c.comission, 0))}
+              </strong>
+            </div>
+            <div className="row-span-2 grid grid-rows-subgrid text-center">
+              <h3>Sua comissão</h3>
+
+              <strong className="self-center text-xl">
+                {brl(
+                  data.commissions.reduce(
+                    (acc, c) => acc + c.comission + c.userComission,
+                    0,
+                  ),
+                )}
               </strong>
             </div>
           </div>
