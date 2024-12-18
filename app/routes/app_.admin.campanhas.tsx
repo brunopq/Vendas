@@ -49,6 +49,9 @@ const campaignSchema = z.object({
   prize: z
     .string({ required_error: "Insira um valor para a meta" })
     .regex(/^\d+(\.\d{1,2})?$/, "O valor deve estar no formato correto"),
+  individualPrize: z
+    .string({ required_error: "Insira um valor para a meta individual" })
+    .regex(/^\d+(\.\d{1,2})?$/, "O valor deve estar no formato correto"),
   month: monthSchema({
     required_error: "Insira um mês",
     invalid_type_error: "Mês inválido",
@@ -63,7 +66,9 @@ async function handleNewCampaign(data: Record<string, unknown>) {
   if (data.prize) {
     data.prize = currencyToNumeric(String(data.prize))
   }
-
+  if (data.individualPrize) {
+    data.individualPrize = currencyToNumeric(String(data.individualPrize))
+  }
   if (data.year) {
     data.year = Number(data.year)
   }
@@ -88,19 +93,20 @@ async function handleUpdateCampaign(data: Record<string, unknown>) {
   if (data.prize) {
     data.prize = currencyToNumeric(String(data.prize))
   }
-
+  if (data.individualPrize) {
+    data.individualPrize = currencyToNumeric(String(data.individualPrize))
+  }
   if (data.year) {
     data.year = Number(data.year)
   }
 
   const parsed = updateCampaignFormSchema.parse(data)
 
-  const id = parsed.id
-
   const updateCampaign: UpdateCampaign = {
     goal: parsed.goal,
     name: parsed.name,
     prize: parsed.prize,
+    individualPrize: parsed.individualPrize,
   }
 
   if (parsed.month && parsed.year) {
@@ -482,9 +488,9 @@ function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
 
         <span className="text-zinc-600">Meta</span>
         <span className="text-zinc-600">Vendas total</span>
-        <span className="text-zinc-600">Comissão total</span>
+        <span className="text-zinc-600">Comissão geral</span>
         <span className="text-zinc-600">Vendas usuário</span>
-        <span className="text-zinc-600">Comissão final</span>
+        <span className="text-zinc-600">Comissão individual</span>
 
         {[0.5, 0.75, 1, 1.1].map((percent) => (
           <React.Fragment key={percent}>
@@ -493,15 +499,10 @@ function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
             </span>
             <span>{Math.round(goal * percent)}</span>
             <span>{brl(prize * percent)}</span>
-            {(() => {
-              const a = Math.floor(Math.random() * Math.round(goal * percent))
-              return (
-                <>
-                  <span>{a}</span>
-                  <span>{brl(individualPrize * a)}</span>
-                </>
-              )
-            })()}
+            <span>{Math.floor(goal * percent * 0.1)}</span>
+            <span>
+              {brl(individualPrize * Math.floor(goal * percent * 0.1))}
+            </span>
           </React.Fragment>
         ))}
       </div>
