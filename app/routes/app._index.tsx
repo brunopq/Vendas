@@ -90,6 +90,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           userComissions.find((uc) => uc.campaign.id === c.campaign.id)
             ?.sellCount || 0
 
+        // TODO: organize this mess
         return {
           ...c,
           userSellCount: userSellCount,
@@ -196,7 +197,7 @@ export default function App() {
                   }))}
                   name={(c) => c.campaign.name}
                   value={(c) => c.sellCount / c.campaign.goal}
-                  markers={[0.5, 0.75, 1, 1.1]}
+                  markers={[0.5, 0.75, 1]}
                   colorStops={[
                     "var(--color-teal-300)",
                     "var(--color-teal-600)",

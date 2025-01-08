@@ -484,28 +484,42 @@ function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
         </FormGroup>
       </div>
 
-      <div className="mt-2 grid grid-cols-[repeat(5,_auto)] text-sm">
+      <div className="mt-2 grid grid-cols-[repeat(4,_auto)] text-sm">
         <strong className="col-span-full mb-1 text-base">Metas: </strong>
 
-        <span className="text-zinc-600">Meta</span>
-        <span className="text-zinc-600">Vendas total</span>
-        <span className="text-zinc-600">Comissão geral</span>
-        <span className="text-zinc-600">Vendas usuário</span>
-        <span className="text-zinc-600">Comissão individual</span>
+        <span />
 
-        {[0.5, 0.75, 1, 1.1].map((percent) => (
-          <React.Fragment key={percent}>
-            <span>
-              {Intl.NumberFormat("pt-br", { style: "percent" }).format(percent)}
-            </span>
-            <span>{Math.round(goal * percent)}</span>
-            <span>{brl(prize * percent)}</span>
-            <span>{Math.floor(goal * percent * 0.1)}</span>
-            <span>
-              {brl(individualPrize * Math.floor(goal * percent * 0.1))}
-            </span>
-          </React.Fragment>
-        ))}
+        <span>
+          {Intl.NumberFormat("pt-br", { style: "percent" }).format(0.5)}
+        </span>
+        <span>
+          {Intl.NumberFormat("pt-br", { style: "percent" }).format(0.75)}
+        </span>
+        <span>
+          {Intl.NumberFormat("pt-br", { style: "percent" }).format(1)}
+        </span>
+
+        <hr className="-col-end-1 col-start-2 my-0.5 border-zinc-300" />
+
+        <span className="text-zinc-600">Vendas totais</span>
+        <span>{Math.round(goal * 0.5)}</span>
+        <span>{Math.round(goal * 0.75)}</span>
+        <span>{Math.round(goal * 1)}</span>
+
+        <span className="text-zinc-600">Comissão geral</span>
+        <span>{brl(prize * 0.5)}</span>
+        <span>{brl(prize * 0.75)}</span>
+        <span>{brl(prize * 1)}</span>
+
+        <span className="text-zinc-600">Vendas usuário</span>
+        <span>{Math.floor(goal * 0.5 * 0.1)}</span>
+        <span>{Math.floor(goal * 0.75 * 0.1)}</span>
+        <span>{Math.floor(goal * 1 * 0.1)}</span>
+
+        <span className="text-zinc-600">Comissão individual</span>
+        <span>{brl(individualPrize * Math.floor(goal * 0.5 * 0.1))}</span>
+        <span>{brl(individualPrize * Math.floor(goal * 0.75 * 0.1))}</span>
+        <span>{brl(individualPrize * Math.floor(goal * 1 * 0.1))}</span>
       </div>
     </>
   )

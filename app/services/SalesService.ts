@@ -140,9 +140,6 @@ class SalesService {
       if (percentage >= 1) {
         campaign.comission = Number(campaign.campaign.prize) * 1
       }
-      if (percentage >= 1.1) {
-        campaign.comission = Number(campaign.campaign.prize) * 1.1
-      }
     }
 
     return comissions
