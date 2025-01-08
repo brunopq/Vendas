@@ -40,6 +40,7 @@ import {
   Dialog,
   Select,
 } from "~/components/ui"
+import { years, yearSchema } from "~/constants/years"
 
 const campaignSchema = z.object({
   name: z.string({ required_error: "Insira um nome para a campanha" }),
@@ -56,7 +57,7 @@ const campaignSchema = z.object({
     required_error: "Insira um mês",
     invalid_type_error: "Mês inválido",
   }),
-  year: z.literal(2024, {
+  year: yearSchema({
     required_error: "Selecione o ano",
     invalid_type_error: "Ano inválido",
   }),
@@ -426,7 +427,7 @@ function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
                 <Select.Value placeholder="Selecione" />
               </Select.Trigger>
               <Select.Content>
-                {[2024].map((a) => (
+                {years.map((a) => (
                   <Select.Item value={a.toString()} key={a}>
                     {a}
                   </Select.Item>
@@ -721,7 +722,7 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
                     </Select.Trigger>
 
                     <Select.Content>
-                      {[2024].map((y) => (
+                      {years.map((y) => (
                         <Select.Item value={y.toString()} key={y}>
                           {y}
                         </Select.Item>
@@ -779,7 +780,7 @@ function CopyCampaignsModal({ children }: { children: JSX.Element }) {
                     </Select.Trigger>
 
                     <Select.Content>
-                      {[2024].map((y) => (
+                      {years.map((y) => (
                         <Select.Item value={y.toString()} key={y}>
                           {y}
                         </Select.Item>

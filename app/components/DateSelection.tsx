@@ -2,6 +2,7 @@ import { Form } from "@remix-run/react"
 import { useEffect, useState } from "react"
 
 import { months } from "~/constants/months"
+import { years } from "~/constants/years"
 
 import { Select } from "./ui"
 
@@ -52,7 +53,7 @@ export function DateSelection({ month, year, onChange }: DateSelectionProps) {
           <Select.Value placeholder="Trocar ano" />
         </Select.Trigger>
         <Select.Content className="max-h-64">
-          {[2023, 2024, 2025].map((a) => (
+          {years.map((a) => (
             <Select.Item key={a} value={`${a}`}>
               {a}
             </Select.Item>
