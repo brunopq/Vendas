@@ -20,6 +20,7 @@ import { toast } from "~/hooks/use-toast"
 import { cn, maxWidth } from "~/lib/utils"
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { error, ok, type Result } from "~/lib/result"
+import { brl } from "~/lib/formatters"
 
 import { userRoleSchmea } from "~/db/schema"
 
@@ -56,7 +57,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     year = new Date().getFullYear()
   }
 
-  const users = await UserService.listByMonth(month, year)
+  const users = await UserService.listWithComissions(month, year)
 
   users.sort((a, b) => b.totalSales - a.totalSales)
 
@@ -218,6 +219,8 @@ export default function Users() {
             <Table.Head className="w-0">Tipo</Table.Head>
             <Table.Head>Nome</Table.Head>
             <Table.Head>Vendas</Table.Head>
+            <Table.Head>Comissão individual</Table.Head>
+            <Table.Head>Comissão total</Table.Head>
             <Table.Head />
           </Table.Row>
         </Table.Header>
@@ -238,6 +241,8 @@ export default function Users() {
                 {u.name}
               </Table.Cell>
               <Table.Cell>{u.totalSales}</Table.Cell>
+              <Table.Cell>{brl(u.comission.totalUserComission)}</Table.Cell>
+              <Table.Cell>{brl(u.comission.totalComission)}</Table.Cell>
               <Table.Cell className="w-0">
                 <UserDropdown
                   id={u.id}

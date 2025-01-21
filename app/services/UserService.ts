@@ -5,6 +5,7 @@ import { db } from "~/db"
 
 import { validateDate } from "~/lib/verifyMonthAndYear"
 
+import CalculateUserComissionUseCase from "./useCases/CalculateUserComissionUseCase"
 import type { DomainUser } from "./AuthService"
 
 class UserService {
@@ -48,6 +49,27 @@ class UserService {
       .groupBy(user.id)
 
     return users
+  }
+
+  async listWithComissions(month: number, year: number) {
+    const users = await this.listByMonth(month, year)
+
+    const usersWithComissions = await Promise.all(
+      users.map(async (user) => {
+        const comission = await CalculateUserComissionUseCase.execute(
+          user.id,
+          month,
+          year,
+        )
+
+        return {
+          ...user,
+          comission,
+        }
+      }),
+    )
+
+    return usersWithComissions
   }
 
   async getByName(name: string): Promise<DomainUser> {
