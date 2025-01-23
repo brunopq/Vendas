@@ -8,7 +8,7 @@ import {
 } from "@remix-run/react"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import React, { useEffect, useState } from "react"
-import { format, intlFormat, parse } from "date-fns"
+import { format, intlFormat, isSameMonth, parse } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { utc, UTCDate } from "@date-fns/utc"
 import { z, ZodError } from "zod"
@@ -21,7 +21,7 @@ import CampaignService from "~/services/CampaignService"
 import { brl, currencyToNumber, currencyToNumeric } from "~/lib/formatters"
 import { error, ok, type Result } from "~/lib/result"
 import { getAdminOrRedirect } from "~/lib/authGuard"
-import { maxWidth } from "~/lib/utils"
+import { cn, maxWidth } from "~/lib/utils"
 
 import { toast } from "~/hooks/use-toast"
 
@@ -302,7 +302,14 @@ export default function Campaigns() {
         </Table.Header>
         <Table.Body>
           {campaigns.map((c) => (
-            <Table.Row key={c.id}>
+            <Table.Row
+              className={cn({
+                "text-zinc-600/80": !isSameMonth(c.month, new Date(), {
+                  in: utc,
+                }),
+              })}
+              key={c.id}
+            >
               <Table.Cell>{c.name}</Table.Cell>
               <Table.Cell>
                 {format(
