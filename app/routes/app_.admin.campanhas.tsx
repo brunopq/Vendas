@@ -10,7 +10,7 @@ import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import React, { useEffect, useState } from "react"
 import { format, intlFormat, parse } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { utc } from "@date-fns/utc"
+import { utc, UTCDate } from "@date-fns/utc"
 import { z, ZodError } from "zod"
 
 import { months, monthSchema } from "~/constants/months"
@@ -152,8 +152,9 @@ async function handleCopyCampaigns(data: Record<string, unknown>) {
     campaigns.map((c) => ({
       ...c,
       id: undefined,
-      month: new Date(
-        Date.UTC(parsed.destinationYear, parsed.destinationMonth + 1),
+      month: new UTCDate(
+        parsed.destinationYear,
+        parsed.destinationMonth,
       ).toDateString(),
     })),
   )
