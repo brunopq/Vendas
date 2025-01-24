@@ -77,6 +77,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   return json({
+    user,
     month,
     year,
     data: {
@@ -102,7 +103,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export default function App() {
-  const { data, month, year } = useLoaderData<typeof loader>()
+  const { data, month, year, user } = useLoaderData<typeof loader>()
   const [_, setSearchParams] = useSearchParams()
 
   const salesByCampaign: Record<string, number> = {}
@@ -149,13 +150,26 @@ export default function App() {
         <header className="mb-4 flex items-center justify-between gap-2">
           <h2 className="font-medium text-2xl">Este mês</h2>
 
-          <DateSelection
-            month={month}
-            year={year}
-            onChange={({ month, year }) => {
-              setSearchParams({ mes: String(month), ano: String(year) })
-            }}
-          />
+          {user.role === "ADMIN" && (
+            <span className="flex items-center gap-4">
+              <Button size="sm">
+                <Link
+                  reloadDocument
+                  to={`/app/exportar-vendas?mes=${month}&ano=${year}`}
+                >
+                  Exportar dados
+                </Link>
+              </Button>
+
+              <DateSelection
+                month={month}
+                year={year}
+                onChange={({ month, year }) => {
+                  setSearchParams({ mes: String(month), ano: String(year) })
+                }}
+              />
+            </span>
+          )}
         </header>
 
         <div className="grid grid-cols-6 gap-4">
