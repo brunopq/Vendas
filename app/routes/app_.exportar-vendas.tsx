@@ -1,21 +1,17 @@
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { format } from "date-fns"
-import { z } from "zod"
+
+import { getAdminOrRedirect } from "~/lib/authGuard"
+import { extractDateFromRequest } from "~/lib/extractDateFromRequest"
 
 import { brl } from "~/lib/formatters"
 
 import SalesService from "~/services/SalesService"
 
-const maybeNumber = z.coerce.number().nullable()
-
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const url = new URL(request.url)
+  await getAdminOrRedirect(request)
 
-  let month = maybeNumber.parse(url.searchParams.get("mes"))
-  if (!month) month = new Date().getMonth() + 1
-
-  let year = maybeNumber.parse(url.searchParams.get("ano"))
-  if (!year) year = new Date().getFullYear()
+  const { month, year } = extractDateFromRequest(request)
 
   const sales = await SalesService.getByMonth(month, year)
 
