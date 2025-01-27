@@ -1,9 +1,11 @@
+import type { DomainCampaign } from "../CampaignService"
 import SalesService from "../SalesService"
 
 type UserComission = {
   userId: string
   campaigns: {
-    campaingId: string
+    campaing: DomainCampaign
+    userSellCount: number
     generalComission: number
     userComission: number
     comission: number
@@ -31,7 +33,8 @@ class CalculateUserComissionUseCase {
         userSellCount * Number.parseInt(campaign.individualPrize)
 
       return {
-        campaingId: campaign.id,
+        campaing: campaign,
+        userSellCount,
         generalComission,
         userComission,
         comission: generalComission + userComission,

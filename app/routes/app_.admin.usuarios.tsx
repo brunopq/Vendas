@@ -190,6 +190,7 @@ export default function Users() {
 
         <Button asChild variant="outline" className="py-[7px] text-sm">
           <Link
+            reloadDocument
             to={{
               pathname: "/app/admin/relatorio",
               search: new URLSearchParams({
