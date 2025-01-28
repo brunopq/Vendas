@@ -1,8 +1,10 @@
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { format } from "date-fns"
+import XLSX from "xlsx"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { extractDateFromRequest } from "~/lib/extractDateFromRequest"
+import { autofitColumns } from "~/lib/autofitXLSXColumns"
 
 import { brl } from "~/lib/formatters"
 
@@ -15,30 +17,61 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const sales = await SalesService.getByMonth(month, year)
 
-  let csv =
-    "Data,Vendedor,Campanha,Área,Tipo de Captação,Recompra,Cliente,Parte Adversa,Valor Estimado,Indicação,Comentários\n"
+  const wb = XLSX.utils.book_new()
+  const ws = XLSX.utils.sheet_new()
 
-  // e as in escape
-  const e = (s: string) => `"${s}",`
+  XLSX.utils.sheet_add_aoa(ws, [
+    [
+      "Data",
+      "Vendedor",
+      "Campanha",
+      "Área",
+      "Tipo de Captação",
+      "Recompra",
+      "Cliente",
+      "Parte Adversa",
+      "Valor Estimado",
+      "Indicação",
+      "Comentários",
+    ],
+  ])
+
   for (const sale of sales) {
-    csv += e(format(sale.date, "dd/MM/yyyy"))
-    csv += e(sale.seller.name)
-    csv += e(sale.campaign.name)
-    csv += e(sale.saleArea)
-    csv += e(sale.captationType === "ATIVO" ? "Ativo" : "Passivo")
-    csv += e(sale.isRepurchase ? "Sim" : "Não")
-    csv += e(sale.client)
-    csv += e(sale.adverseParty)
-    csv += e(sale.estimatedValue ? brl(sale.estimatedValue) : "")
-    csv += e(sale.indication ? sale.indication : "")
-    csv += e(sale.comments ? sale.comments : "")
-    csv += "\n"
+    XLSX.utils.sheet_add_aoa(
+      ws,
+      [
+        [
+          format(sale.date, "dd/MM/yyyy"),
+          sale.seller.name,
+          sale.campaign.name,
+          sale.saleArea,
+          sale.captationType === "ATIVO" ? "Ativo" : "Passivo",
+          sale.isRepurchase ? "Sim" : "Não",
+          sale.client,
+          sale.adverseParty,
+          sale.estimatedValue ? brl(sale.estimatedValue) : "",
+          sale.indication,
+          sale.comments,
+        ],
+      ],
+      { origin: -1 },
+    )
   }
+  autofitColumns(ws, XLSX.utils.decode_range("A1:H1000"))
 
-  return new Response(csv, {
+  XLSX.utils.book_append_sheet(wb, ws, "Relatório")
+  const fileData = XLSX.write(wb, {
+    bookType: "xlsx",
+    type: "buffer",
+    cellStyles: true,
+  })
+
+  return new Response(fileData, {
     headers: {
-      "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="vendas-${month}-${year}.csv"`,
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+
+      "Content-Disposition": `attachment; filename="vendas-${month}-${year}.xlsx"`,
     },
   })
 }
