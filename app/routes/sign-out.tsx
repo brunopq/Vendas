@@ -1,8 +1,9 @@
-import { redirect, type LoaderFunction } from "@remix-run/node"
+import type { Route } from "./+types/sign-out"
+import { redirect } from "react-router"
 
 import { destroySession, getSession } from "~/session"
 
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request)
 
   return redirect("/", {

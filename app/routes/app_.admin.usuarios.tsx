@@ -1,16 +1,11 @@
-import {
-  type ActionFunctionArgs,
-  json,
-  type LoaderFunctionArgs,
-} from "@remix-run/node"
+import type { Route } from "./+types/app_.admin.usuarios"
 import {
   Form,
   Link,
   useActionData,
   useFetcher,
-  useLoaderData,
   useSearchParams,
-} from "@remix-run/react"
+} from "react-router"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
 import { useEffect, useId } from "react"
 import { z, ZodError } from "zod"
@@ -21,6 +16,7 @@ import { cn, maxWidth } from "~/lib/utils"
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { error, ok, type Result } from "~/lib/result"
 import { brl } from "~/lib/formatters"
+import { extractDateFromRequest } from "~/lib/extractDateFromRequest"
 
 import { userRoleSchmea } from "~/db/schema"
 
@@ -40,28 +36,16 @@ import {
   Checkbox,
 } from "~/components/ui"
 
-const maybeNumber = z.coerce.number().nullable()
-
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: Route.LoaderArgs) {
   await getAdminOrRedirect(request)
 
-  const url = new URL(request.url)
-
-  let month = maybeNumber.parse(url.searchParams.get("mes"))
-  if (!month) {
-    month = new Date().getMonth() + 1
-  }
-
-  let year = maybeNumber.parse(url.searchParams.get("ano"))
-  if (!year) {
-    year = new Date().getFullYear()
-  }
+  const { year, month } = extractDateFromRequest(request)
 
   const users = await UserService.listWithComissions(month, year)
 
   users.sort((a, b) => b.totalSales - a.totalSales)
 
-  return json({ users, month, year })
+  return { users, month, year }
 }
 
 async function handle<const M, Res>(method: M, fn: () => Promise<Res>) {
@@ -130,7 +114,7 @@ async function handleDeleteUser(data: Record<string, unknown>) {
   await AuthService.delete(String(id))
 }
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export async function action({ request }: Route.ActionArgs) {
   await getAdminOrRedirect(request)
 
   const formData = await request.formData()
@@ -166,8 +150,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 }
 
-export default function Users() {
-  const { users, month, year } = useLoaderData<typeof loader>()
+export default function Users({ loaderData }: Route.ComponentProps) {
+  const { users, month, year } = loaderData
 
   const [_, setSearchParams] = useSearchParams()
 

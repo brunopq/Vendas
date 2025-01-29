@@ -1,15 +1,6 @@
-import type {
-  ActionFunction,
-  LoaderFunctionArgs,
-  MetaFunction,
-} from "@remix-run/node"
-import {
-  Form,
-  json,
-  redirect,
-  useActionData,
-  useNavigation,
-} from "@remix-run/react"
+import type { Route } from "./+types/login"
+import type { MetaFunction } from "react-router"
+import { Form, redirect, useNavigation } from "react-router"
 import { z } from "zod"
 
 import { commitSession, getSession, getUser } from "~/session"
@@ -18,18 +9,14 @@ import AuthService from "~/services/AuthService"
 
 import { Button, Input } from "~/components/ui"
 
-export const meta: MetaFunction = () => [
-  {
-    title: "Login | Vendas Iboti",
-  },
-]
+export const meta: MetaFunction = () => [{ title: "Login | Vendas Iboti" }]
 
 const formValidator = z.object({
   name: z.string().min(1),
   password: z.string().min(1),
 })
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await getUser(request)
 
   if (user) {
@@ -39,7 +26,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return null
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request }: Route.ActionArgs) {
   try {
     const session = await getSession(request)
 
@@ -57,15 +44,14 @@ export const action: ActionFunction = async ({ request }) => {
       },
     })
   } catch (e) {
-    return json({ error: true })
+    return { error: true }
   }
 }
 
-export default function Login() {
-  const response = useActionData<typeof action>()
+export default function Login({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation()
 
-  const hasError = response?.error === true
+  const hasError = actionData?.error === true
   const isSubmitting = navigation.state === "submitting"
 
   return (

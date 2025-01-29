@@ -1,8 +1,8 @@
+import type { Route } from "./+types/route"
 import { UTCDate } from "@date-fns/utc"
-import { useFetcher, useLoaderData } from "@remix-run/react"
+import { useFetcher } from "react-router"
 import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
-import type { ActionFunctionArgs } from "@remix-run/node"
-import type { useActionData } from "@remix-run/react"
+import type { useActionData } from "react-router"
 import { format, isSameMonth, parse } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { utc } from "@date-fns/utc"
@@ -192,7 +192,7 @@ async function handle<const M, const T, Res>(
   return { method, type, result }
 }
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export async function action({ request }: Route.ActionArgs) {
   await getAdminOrRedirect(request)
 
   const formData = await request.formData()
@@ -258,8 +258,8 @@ export function getResult<
   return undefined
 }
 
-export default function Campaigns() {
-  const { campaigns } = useLoaderData<typeof loader>()
+export default function Campaigns({ loaderData }: Route.ComponentProps) {
+  const { campaigns } = loaderData
 
   return (
     <section className={maxWidth("mt-8")}>

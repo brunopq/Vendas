@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import type { Route } from "./+types/app.campaigns"
 import { isValid, parse } from "date-fns"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
@@ -12,7 +12,7 @@ import CampaignService from "~/services/CampaignService"
  *
  * Date is returned as a javascript `Date`, encoded with `JSON.stringify`
  */
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: Route.LoaderArgs) {
   await getUserOrRedirect(request)
 
   const urlDate = new URL(request.url).searchParams.get("date")
@@ -30,5 +30,5 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     date.getUTCFullYear(),
   )
 
-  return json({ campaigns, date })
+  return { campaigns, date }
 }

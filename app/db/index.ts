@@ -3,16 +3,18 @@ import { migrate } from "drizzle-orm/postgres-js/migrator"
 import { readFileSync } from "node:fs"
 import postgres from "postgres"
 
+import { env } from "node:process"
+
 import * as schema from "./schema"
 
-const caCertificatePath = process.env.CA_CERTIFICATE_PATH
+const caCertificatePath = env.CA_CERTIFICATE_PATH
 
 const connection = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  ssl: process.env.NODE_ENV === "production" && {
+  host: env.DB_HOST,
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
+  database: env.DB_NAME,
+  ssl: env.NODE_ENV === "production" && {
     rejectUnauthorized: true,
     // biome-ignore lint/style/noNonNullAssertion: should break everything
     ca: readFileSync(caCertificatePath!),

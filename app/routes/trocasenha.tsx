@@ -1,17 +1,12 @@
+import type { Route } from "./+types/trocasenha"
 import { useEffect } from "react"
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node"
-import {
-  Form,
-  json,
-  useActionData,
-  useLoaderData,
-  useNavigation,
-} from "@remix-run/react"
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router"
+import { Form, data, useNavigation } from "react-router"
 import { z, ZodError } from "zod"
 
 import { destroySession, getSession } from "~/session"
 import { getUserOrRedirect } from "~/lib/authGuard"
-import { typedError } from "~/lib/result"
+import { error, ok } from "~/lib/result"
 
 import AuthService from "~/services/AuthService"
 
@@ -22,7 +17,7 @@ import { toast } from "~/hooks/use-toast"
 import { Button, Input } from "~/components/ui"
 import FormGroup from "~/components/FormGroup"
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await getUserOrRedirect(request)
 
   return user
@@ -33,22 +28,22 @@ const formSchema = z.object({
   newPassword: z.string({ required_error: "Insira a senha nova" }),
 })
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request)
   const user = await getUserOrRedirect(request)
 
   try {
     const formData = await request.formData()
 
-    const data: Record<string, unknown> = {}
+    const payload: Record<string, unknown> = {}
 
     for (const [field, value] of formData) {
       if (value) {
-        data[field] = String(value)
+        payload[field] = String(value)
       }
     }
 
-    const parsedForm = formSchema.parse(data)
+    const parsedForm = formSchema.parse(payload)
 
     const passwordMatches = await AuthService.passwordMatches(
       user.id,
@@ -56,22 +51,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     )
 
     if (!passwordMatches) {
-      return typedError([
-        { type: "oldPassword", message: "Senha antiga incorreta" },
-      ])
+      return error([{ type: "oldPassword", message: "Senha antiga incorreta" }])
     }
 
     await AuthService.changePassword(user.id, parsedForm.newPassword)
 
-    // TODO: extend Result module to accept headers and other request props
-    // return typedOk(
-    // { redirectTo: "/login" },
-    // { headers: { "Set-Cookie": await destroySession(session) } },
-    // )
-    return json(
-      { ok: true as true, redirectTo: "/login" },
-      { headers: { "Set-Cookie": await destroySession(session) } },
-    )
+    return data(ok({ redirectTo: "/login" }), {
+      headers: { "Set-Cookie": await destroySession(session) },
+    })
   } catch (e) {
     if (e instanceof ZodError) {
       const errors = e.issues.map((i) => ({
@@ -79,14 +66,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         message: i.message,
       }))
 
-      return typedError(errors)
+      return error(errors)
     }
   }
 }
 
-export default function TrocaSenha() {
-  const user = useLoaderData<typeof loader>()
-  const response = useActionData<typeof action>()
+export function headers({ actionHeaders, loaderHeaders }: Route.HeadersArgs) {
+  return actionHeaders ? actionHeaders : loaderHeaders
+}
+
+export default function TrocaSenha({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  const user = loaderData
+  const response = actionData
   const navigation = useNavigation()
 
   const hasError = !response?.ok

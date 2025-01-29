@@ -1,9 +1,6 @@
-import {
-  json,
-  type MetaFunction,
-  type LoaderFunctionArgs,
-} from "@remix-run/node"
-import { Link, Outlet, useLoaderData } from "@remix-run/react"
+import type { Route } from "./+types/app"
+import type { MetaFunction } from "react-router"
+import { Link, Outlet } from "react-router"
 import { KeyRound, LogOut, Menu } from "lucide-react"
 
 import { maxWidth } from "~/lib/utils"
@@ -11,8 +8,8 @@ import { getUserOrRedirect } from "~/lib/authGuard"
 
 import { Button, DropdownMenu } from "~/components/ui"
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return json(await getUserOrRedirect(request, "/login"))
+export async function loader({ request }: Route.LoaderArgs) {
+  return await getUserOrRedirect(request, "/login")
 }
 
 export const meta: MetaFunction = () => [
@@ -21,8 +18,8 @@ export const meta: MetaFunction = () => [
   },
 ]
 
-export default function App() {
-  const user = useLoaderData<typeof loader>()
+export default function App({ loaderData }: Route.ComponentProps) {
+  const user = loaderData
 
   return (
     <div>

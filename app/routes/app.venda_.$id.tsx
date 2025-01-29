@@ -1,19 +1,12 @@
+import type { Route } from "./+types/app.venda_.$id"
 import { useEffect } from "react"
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node"
-import {
-  Form,
-  json,
-  Link,
-  redirect,
-  useActionData,
-  useLoaderData,
-} from "@remix-run/react"
+import { Form, Link, redirect } from "react-router"
 import { ArrowLeft } from "lucide-react"
 import { ZodError } from "zod"
 
 import { getUserOrRedirect } from "~/lib/authGuard"
 import { currencyToNumeric } from "~/lib/formatters"
-import { typedError, typedOk } from "~/lib/result"
+import { error, ok } from "~/lib/result"
 
 import SalesService from "~/services/SalesService"
 
@@ -25,14 +18,10 @@ import { Button } from "~/components/ui"
 
 import SaleFormFields, { saleFormSchema } from "~/components/SaleFormFields"
 
-export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const user = await getUserOrRedirect(request)
+export async function loader({ request, params }: Route.LoaderArgs) {
+  await getUserOrRedirect(request)
 
   const saleId = params.id
-
-  if (!saleId) {
-    throw new Error("sale id not provided (??????????)")
-  }
 
   const sale = await SalesService.getById(saleId)
 
@@ -40,19 +29,15 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     throw redirect("/app")
   }
 
-  return json(sale)
+  return sale
 }
 
 const editSaleFormSchema = saleFormSchema.omit({ seller: true })
 
-export const action = async ({ request, params }: ActionFunctionArgs) => {
-  const user = await getUserOrRedirect(request)
+export async function action({ request, params }: Route.ActionArgs) {
+  await getUserOrRedirect(request)
 
   const saleId = params.id
-
-  if (!saleId) {
-    throw new Error("sale id not provided (??????????)")
-  }
 
   const formData = await request.formData()
 
@@ -81,7 +66,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
     const updated = await SalesService.update(saleId, parsed)
 
-    return typedOk(updated)
+    return ok(updated)
   } catch (e) {
     if (e instanceof ZodError) {
       const errors = e.issues.map((i) => ({
@@ -89,16 +74,19 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
         message: i.message,
       }))
 
-      return typedError(errors)
+      return error(errors)
     }
 
-    return typedError([{ type: "backend", message: "unknown backend error" }])
+    return error([{ type: "backend", message: "unknown backend error" }])
   }
 }
 
-export default function Venda() {
-  const sale = useLoaderData<typeof loader>()
-  const response = useActionData<typeof action>()
+export default function Venda({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
+  const sale = loaderData
+  const response = actionData
 
   let errors: ErrorT[] = []
   if (response && !response.ok) {

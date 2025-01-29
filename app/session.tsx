@@ -1,12 +1,10 @@
-import { createCookieSessionStorage } from "@remix-run/node"
+import { createCookieSessionStorage } from "react-router"
+
+import { env } from "./lib/envConfig"
 
 import type { DomainUser } from "~/services/AuthService"
 
-const cookieSecret = process.env.COOKIE_SECRET
-
-if (!cookieSecret) {
-  throw new Error("COOKIE_SECRET should be present in .env file")
-}
+const cookieSecret = env.COOKIE_SECRET
 
 export type SessionData = {
   user: DomainUser
@@ -23,7 +21,7 @@ export const {
     path: "/",
     httpOnly: false,
     secrets: [cookieSecret],
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
   },
 })
 

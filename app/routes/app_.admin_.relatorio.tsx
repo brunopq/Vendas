@@ -1,5 +1,5 @@
+import type { Route } from "./+types/app_.admin_.relatorio"
 import { UTCDate } from "@date-fns/utc"
-import type { LoaderFunctionArgs } from "@remix-run/node"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import XLSX from "xlsx"
@@ -14,7 +14,7 @@ function excelCurrency(value: number) {
   return { v: value, t: "n", z: "R$ #,##0.00" }
 }
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: Route.LoaderArgs) {
   await getAdminOrRedirect(request)
 
   const { month, year } = extractDateFromRequest(request)

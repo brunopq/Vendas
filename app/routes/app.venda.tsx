@@ -1,15 +1,12 @@
-import type {
-  ActionFunctionArgs,
-  MetaFunction,
-  TypedResponse,
-} from "@remix-run/node"
-import { Form, Link, useActionData } from "@remix-run/react"
+import type { Route } from "./+types/app.venda"
+import type { MetaFunction } from "react-router"
+import { Form, Link } from "react-router"
 import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
 
 import SalesService, { type DomainSale } from "~/services/SalesService"
 
-import { type Result, typedOk, typedError } from "~/lib/result"
+import { type Result, ok, error } from "~/lib/result"
 import { currencyToNumeric } from "~/lib/formatters"
 import { getUserOrRedirect } from "~/lib/authGuard"
 
@@ -28,9 +25,9 @@ export const meta: MetaFunction = () => [
 ]
 
 type ActionResponse = Result<DomainSale, ErrorT[]>
-export const action = async ({
+export async function action({
   request,
-}: ActionFunctionArgs): Promise<TypedResponse<ActionResponse>> => {
+}: Route.ActionArgs): Promise<ActionResponse> {
   try {
     const user = await getUserOrRedirect(request)
 
@@ -65,17 +62,17 @@ export const action = async ({
         message: i.message,
       }))
 
-      return typedError(errors)
+      return error(errors)
     }
 
-    return typedOk(await SalesService.create(parsed.data))
+    return ok(await SalesService.create(parsed.data))
   } catch (e) {
-    return typedError([{ type: "backend", message: "unknown backend error" }])
+    return error([{ type: "backend", message: "unknown backend error" }])
   }
 }
 
-export default function Venda() {
-  const response = useActionData<typeof action>()
+export default function Venda({ actionData }: Route.ComponentProps) {
+  const response = actionData
 
   let errors: ErrorT[] = []
   if (response && !response.ok) {

@@ -1,13 +1,13 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import type { Route } from "./+types/route"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 
 import CampaignService from "~/services/CampaignService"
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: Route.LoaderArgs) {
   await getAdminOrRedirect(request)
 
   const campaigns = await CampaignService.index()
 
-  return json({ campaigns })
+  return { campaigns }
 }

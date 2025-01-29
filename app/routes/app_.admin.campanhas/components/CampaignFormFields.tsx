@@ -1,5 +1,4 @@
 import { useState } from "react"
-import FormGroup from "~/components/FormGroup"
 
 import { brl, currencyToNumber } from "~/lib/formatters"
 
@@ -9,6 +8,7 @@ import { years } from "~/constants/years"
 import type { DomainCampaign } from "~/services/CampaignService"
 
 import { BrlInput, Input, Select } from "~/components/ui"
+import FormGroup from "~/components/FormGroup"
 
 export type CampaiginFormFieldsProps = {
   campaign?: Partial<DomainCampaign>

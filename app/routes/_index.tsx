@@ -1,5 +1,5 @@
-import { redirect, type LoaderFunction } from "@remix-run/node"
+import { redirect } from "react-router"
 
-export const loader: LoaderFunction = () => {
+export function loader() {
   return redirect("/login")
 }

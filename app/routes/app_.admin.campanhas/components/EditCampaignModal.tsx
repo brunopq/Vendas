@@ -1,4 +1,4 @@
-import { useFetcher } from "@remix-run/react"
+import { useFetcher } from "react-router";
 import React, { useEffect } from "react"
 
 import type { DomainCampaign } from "~/services/CampaignService"

@@ -1,5 +1,5 @@
-import { redirect } from "@remix-run/node"
+import { redirect } from "react-router"
 
-export const loader = () => {
+export function loader() {
   throw redirect("/app/admin/usuarios")
 }

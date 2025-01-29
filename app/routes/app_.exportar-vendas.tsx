@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node"
+import type { Route } from "./+types/app_.exportar-vendas"
 import { format } from "date-fns"
 import XLSX from "xlsx"
 
@@ -10,7 +10,7 @@ import { brl } from "~/lib/formatters"
 
 import SalesService from "~/services/SalesService"
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: Route.LoaderArgs) {
   await getAdminOrRedirect(request)
 
   const { month, year } = extractDateFromRequest(request)

@@ -1,5 +1,5 @@
-import { Form, Link, useLoaderData, useSearchParams } from "@remix-run/react"
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import type { Route } from "./+types/app._index"
+import { Link, useLoaderData, useSearchParams } from "react-router"
 import { memo, useState } from "react"
 import { ChevronDown, EllipsisVertical } from "lucide-react"
 import {
@@ -15,6 +15,7 @@ import { format, isBefore, isSameDay, parse } from "date-fns"
 import { z } from "zod"
 import { utc } from "@date-fns/utc"
 
+import { extractDateFromRequest } from "~/lib/extractDateFromRequest"
 import { getUserOrRedirect } from "~/lib/authGuard"
 import { brl } from "~/lib/formatters"
 import { cn } from "~/lib/utils"
@@ -24,30 +25,20 @@ import SalesService, {
   type CaptationType,
 } from "~/services/SalesService"
 
-import { Button, Table, DropdownMenu, Tabs } from "~/components/ui"
+import { Button, Table, DropdownMenu } from "~/components/ui"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
-import { LineChart } from "~/components/charts/line"
 import { DateSelection } from "~/components/DateSelection"
 
 const maybeNumber = z.coerce.number().nullable()
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await getUserOrRedirect(request)
 
-  const url = new URL(request.url)
+  const { year, month } = extractDateFromRequest(request)
 
-  let month = maybeNumber.parse(url.searchParams.get("mes"))
-  if (!month) {
-    month = new Date().getMonth() + 1
-  }
-
-  let year = maybeNumber.parse(url.searchParams.get("ano"))
-  if (!year) {
-    year = new Date().getFullYear()
-  }
   const [data, userData, newClients, commissions, userComissions] =
     await Promise.all([
       SalesService.getByMonth(month, year),
@@ -76,7 +67,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
-  return json({
+  return {
     user,
     month,
     year,
@@ -99,11 +90,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         }
       }),
     },
-  })
+  }
 }
 
-export default function App() {
-  const { data, month, year, user } = useLoaderData<typeof loader>()
+export default function App({ loaderData }: Route.ComponentProps) {
+  const { data, month, year, user } = loaderData
   const [_, setSearchParams] = useSearchParams()
 
   const salesByCampaign: Record<string, number> = {}
