@@ -35,6 +35,7 @@ import {
   Dialog,
   Checkbox,
 } from "~/components/ui"
+import SalesService from "~/services/SalesService"
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getAdminOrRedirect(request)
@@ -42,10 +43,14 @@ export async function loader({ request }: Route.LoaderArgs) {
   const { year, month } = extractDateFromRequest(request)
 
   const users = await UserService.listWithComissions(month, year)
+  const totalEstimatedValue = await SalesService.getTotalEstimatedValueByMonth(
+    month,
+    year,
+  )
 
   users.sort((a, b) => b.totalSales - a.totalSales)
 
-  return { users, month, year }
+  return { users, month, year, totalEstimatedValue }
 }
 
 async function handle<const M, Res>(method: M, fn: () => Promise<Res>) {
@@ -196,6 +201,13 @@ export default function Users({ loaderData }: Route.ComponentProps) {
           </Dialog.Trigger>
           <NewUserModal />
         </Dialog.Root>
+
+        <span className="w-full text-end">
+          Valor total estimado: <br />
+          <strong className="font-semibold text-primary-700">
+            {brl(loaderData.totalEstimatedValue || 0)}
+          </strong>
+        </span>
       </fieldset>
 
       <Table.Root>

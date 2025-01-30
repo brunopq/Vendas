@@ -1,5 +1,5 @@
 import { endOfMonth, isSameMonth, startOfMonth } from "date-fns"
-import { and, between, eq, sql } from "drizzle-orm"
+import { and, between, eq, sql, sum } from "drizzle-orm"
 
 import { db } from "~/db"
 import { campaign, newSaleSchema, sale } from "~/db/schema"
@@ -167,6 +167,27 @@ class SalesService {
       )
       .groupBy(campaign.id)
     return campaigns
+  }
+
+  async getTotalEstimatedValueByMonth(month: number, year: number) {
+    const date = validateDate(month, year)
+
+    const [{ totalValue }] = await db
+      .select({
+        totalValue: sum(sale.estimatedValue),
+      })
+      .from(sale)
+      .where(
+        and(
+          between(
+            sale.date,
+            startOfMonth(date).toDateString(),
+            endOfMonth(date).toDateString(),
+          ),
+        ),
+      )
+
+    return totalValue
   }
 
   async create(newSale: NewSale) {
