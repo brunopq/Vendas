@@ -4,9 +4,7 @@ import XLSX from "xlsx"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { extractDateFromRequest } from "~/lib/extractDateFromRequest"
-import { autofitColumns } from "~/lib/autofitXLSXColumns"
-
-import { brl } from "~/lib/formatters"
+import { autofitColumns, excelCurrency } from "~/lib/XLSXUtils"
 
 import SalesService from "~/services/SalesService"
 
@@ -49,7 +47,7 @@ export async function loader({ request }: Route.LoaderArgs) {
           sale.isRepurchase ? "Sim" : "Não",
           sale.client,
           sale.adverseParty,
-          sale.estimatedValue ? brl(sale.estimatedValue) : "",
+          excelCurrency(Number(sale.estimatedValue) || 0),
           sale.indication,
           sale.comments,
         ],
@@ -57,7 +55,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       { origin: -1 },
     )
   }
-  autofitColumns(ws, XLSX.utils.decode_range("A1:H1000"))
+  autofitColumns(ws, XLSX.utils.decode_range("A1:Z1000"))
 
   XLSX.utils.book_append_sheet(wb, ws, "Relatório")
   const fileData = XLSX.write(wb, {

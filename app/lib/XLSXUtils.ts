@@ -24,3 +24,7 @@ export function autofitColumns(
     worksheet["!cols"][C] = { wch: maxLengths[C] }
   }
 }
+
+export function excelCurrency(value: number) {
+  return { v: value, t: "n", z: "R$ #,##0.00" }
+}

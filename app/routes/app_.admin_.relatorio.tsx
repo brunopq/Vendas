@@ -6,13 +6,9 @@ import XLSX from "xlsx"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
 import { extractDateFromRequest } from "~/lib/extractDateFromRequest"
-import { autofitColumns } from "~/lib/autofitXLSXColumns"
+import { autofitColumns, excelCurrency } from "~/lib/XLSXUtils"
 
 import UserService from "~/services/UserService"
-
-function excelCurrency(value: number) {
-  return { v: value, t: "n", z: "R$ #,##0.00" }
-}
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getAdminOrRedirect(request)
