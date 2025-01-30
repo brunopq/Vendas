@@ -1,6 +1,6 @@
 import type { Route } from "./+types/app._index"
-import { Link, useLoaderData, useSearchParams } from "react-router"
-import { memo, useState } from "react"
+import { Link, useFetcher, useLoaderData, useSearchParams } from "react-router"
+import { memo, useEffect, useState } from "react"
 import { ChevronDown, EllipsisVertical } from "lucide-react"
 import {
   flexRender,
@@ -19,18 +19,20 @@ import { extractDateFromRequest } from "~/lib/extractDateFromRequest"
 import { getUserOrRedirect } from "~/lib/authGuard"
 import { brl } from "~/lib/formatters"
 import { cn } from "~/lib/utils"
+import { error } from "~/lib/result"
 
 import SalesService, {
   type DomainSale,
   type CaptationType,
 } from "~/services/SalesService"
 
-import { Button, Table, DropdownMenu } from "~/components/ui"
+import { Button, Table, DropdownMenu, Dialog } from "~/components/ui"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
 import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
 import { DateSelection } from "~/components/DateSelection"
+import { toast } from "~/hooks/use-toast"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -90,6 +92,48 @@ export async function loader({ request }: Route.LoaderArgs) {
         }
       }),
     },
+  }
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  const user = await getUserOrRedirect(request)
+
+  const formData = await request.formData()
+
+  const data: Record<string, unknown> = {}
+
+  for (const [field, value] of formData) {
+    if (value) {
+      data[field] = String(value)
+    }
+  }
+
+  if (request.method === "DELETE") {
+    const { id } = z
+      .object({
+        id: z.string(),
+      })
+      .parse(data)
+
+    const sale = await SalesService.getById(id)
+
+    if (!sale) {
+      return error({
+        method: "DELETE",
+        type: "not_found" as const,
+        message: `Sale ${id} not found`,
+      })
+    }
+
+    if (user.role !== "ADMIN" && sale.seller !== user.id) {
+      return error({
+        method: "DELETE",
+        type: "forbidden" as const,
+        message: `User ${user.id} is not allowed to delete sale ${id}`,
+      })
+    }
+
+    await SalesService.delete(id)
   }
 }
 
@@ -361,7 +405,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
 
-      <RecentSales />
+      <RecentSales key={`${month}/${year}-${data.total.length}`} />
 
       <footer className="mt-16 py-16" />
     </div>
@@ -428,27 +472,118 @@ function CampaignsTable() {
   )
 }
 
-const defaultColumns: ColumnDef<DomainSale>[] = [
+// holy shit
+const defaultColumns: ColumnDef<
+  Awaited<ReturnType<typeof loader>>["data"]["total"][number]
+>[] = [
   {
     id: "dropdown",
     header: "",
     accessorKey: "id",
     enableHiding: false,
     enableSorting: false,
-    cell: memo(({ cell }) => (
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger asChild>
-          <Button variant="ghost" className="p-1">
-            <EllipsisVertical className="size-4" />
-          </Button>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Item asChild>
-            <Link to={`venda/${cell.getValue()}`}>Editar</Link>
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
-    )),
+    cell: memo(({ cell, row }) => {
+      const fetcher = useFetcher<typeof action>({})
+
+      useEffect(() => {
+        if (fetcher.data?.ok === false) {
+          let message = "Erro desconhecido"
+
+          if (fetcher.data.error.type === "forbidden") {
+            message = "Você não tem permissão para excluir essa venda"
+          } else if (fetcher.data.error.type === "not_found") {
+            message = "Venda não encontrada"
+          }
+
+          toast({
+            title: "Erro ao excluir",
+            description: message,
+            variant: "destructive",
+          })
+        }
+      }, [fetcher.data])
+
+      return (
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <Button variant="ghost" className="p-1">
+              <EllipsisVertical className="size-4" />
+            </Button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
+            <DropdownMenu.Item asChild>
+              <Link to={`venda/${cell.getValue()}`}>Editar</Link>
+            </DropdownMenu.Item>
+
+            <Dialog.Root>
+              <Dialog.Trigger asChild>
+                <DropdownMenu.Item
+                  onSelect={(e) => e.preventDefault()}
+                  variant="danger"
+                >
+                  Excluir
+                </DropdownMenu.Item>
+              </Dialog.Trigger>
+
+              <Dialog.Content className="[--dialog-content-max-width:32rem]">
+                <Dialog.Header>
+                  <Dialog.Title>Excluir venda</Dialog.Title>
+                  <Dialog.Description>
+                    Você tem certeza que deseja excluir esta venda?
+                  </Dialog.Description>
+                </Dialog.Header>
+
+                <div className="space-y-1">
+                  <p>
+                    Criado por:{" "}
+                    <strong className="font-semibold text-primary-700">
+                      {row.original.seller.name}
+                    </strong>{" "}
+                    em{" "}
+                    <strong className="font-semibold text-primary-700">
+                      {format(new Date(row.original.date), "dd/MM/yyyy")}
+                    </strong>
+                  </p>
+                  <p>
+                    Cliente:{" "}
+                    <strong className="font-semibold text-primary-700">
+                      {row.original.client}
+                    </strong>
+                  </p>
+                  <p>
+                    Parte adversa:{" "}
+                    <strong className="font-semibold text-primary-700">
+                      {row.original.adverseParty}
+                    </strong>
+                  </p>
+                  <p>
+                    Campanha:{" "}
+                    <strong className="font-semibold text-primary-700">
+                      {row.original.campaign.name}
+                    </strong>
+                  </p>
+                </div>
+
+                <Dialog.Footer>
+                  <Button variant="ghost">Cancelar</Button>
+                  <Button
+                    onClick={() =>
+                      fetcher.submit(
+                        { id: row.original.id },
+                        { method: "DELETE" },
+                      )
+                    }
+                    variant="destructive"
+                  >
+                    Excluir
+                  </Button>
+                </Dialog.Footer>
+              </Dialog.Content>
+            </Dialog.Root>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      )
+    }),
   },
   {
     id: "date",
@@ -505,7 +640,6 @@ const defaultColumns: ColumnDef<DomainSale>[] = [
         ? "Sem estimativa"
         : brl(String(info.getValue())),
   },
-
   {
     id: "indication",
     header: "Indicação",

@@ -196,6 +196,10 @@ class SalesService {
       .returning()
     return updated
   }
+
+  async delete(id: string) {
+    return await db.delete(sale).where(eq(sale.id, id))
+  }
 }
 
 export default new SalesService()
