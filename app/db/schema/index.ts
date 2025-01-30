@@ -34,6 +34,7 @@ export const userRoles = pgEnum("user_roles", ["ADMIN", "SELLER"])
 export const user = pgTable("users", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
   name: text("name").notNull().unique(),
+  fullName: text("full_name"),
   role: userRoles("user_role").notNull(),
   passwordHash: text("password_hash").notNull(),
 })

@@ -6,7 +6,9 @@ import { sale, user, type User } from "~/db/schema"
 
 export type DomainUser = Omit<User, "passwordHash">
 export type NewUser = Omit<DomainUser, "id"> & { password: string }
-export type LoginUser = Omit<DomainUser, "id" | "role"> & { password: string }
+export type LoginUser = Omit<DomainUser, "id" | "role" | "fullName"> & {
+  password: string
+}
 export type UpdateUser = Partial<Omit<DomainUser, "id">>
 
 class AuthService {
@@ -15,6 +17,7 @@ class AuthService {
       .select({
         id: user.id,
         name: user.name,
+        fullName: user.fullName,
         role: user.role,
         totalSales: sql<number>`cast(count(${sale.id}) as int)`,
       })
@@ -31,6 +34,7 @@ class AuthService {
       columns: {
         id: true,
         name: true,
+        fullName: true,
         role: true,
         passwordHash: false,
       },
@@ -63,6 +67,7 @@ class AuthService {
     return {
       id: user.id,
       name: user.name,
+      fullName: user.fullName,
       role: user.role,
     }
   }
@@ -92,6 +97,7 @@ class AuthService {
       .insert(user)
       .values({
         name: userInfo.name,
+        fullName: userInfo.fullName,
         passwordHash: hashedPassword,
         role: userInfo.role,
       })
@@ -101,6 +107,7 @@ class AuthService {
     return {
       id: createdUser.id,
       name: createdUser.name,
+      fullName: createdUser.fullName,
       role: createdUser.role,
     }
   }
@@ -119,6 +126,7 @@ class AuthService {
     return {
       id: updated.id,
       name: updated.name,
+      fullName: updated.fullName,
       role: updated.role,
     }
   }
@@ -128,6 +136,7 @@ class AuthService {
       .update(user)
       .set({
         name: fields.name,
+        fullName: fields.fullName,
         role: fields.role,
       })
       .where(eq(user.id, id))
@@ -136,6 +145,7 @@ class AuthService {
     return {
       id: updated.id,
       name: updated.name,
+      fullName: updated.fullName,
       role: updated.role,
     }
   }

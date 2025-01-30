@@ -1,5 +1,6 @@
 import { and, between, eq, sql } from "drizzle-orm"
 import { endOfMonth, startOfMonth } from "date-fns"
+
 import { sale, user } from "~/db/schema"
 import { db } from "~/db"
 
@@ -14,6 +15,7 @@ class UserService {
       .select({
         id: user.id,
         name: user.name,
+        fullName: user.fullName,
         role: user.role,
         totalSales: sql<number>`cast(count(${sale.id}) as int)`,
       })
@@ -31,6 +33,7 @@ class UserService {
       .select({
         id: user.id,
         name: user.name,
+        fullName: user.fullName,
         role: user.role,
         totalSales: sql<number>`cast(count(${sale.id}) as int)`,
       })
@@ -78,6 +81,7 @@ class UserService {
       columns: {
         id: true,
         name: true,
+        fullName: true,
         role: true,
         passwordHash: false,
       },

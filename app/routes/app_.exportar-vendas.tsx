@@ -42,7 +42,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       [
         [
           format(sale.date, "dd/MM/yyyy"),
-          sale.seller.name,
+          sale.seller.fullName || sale.seller.name,
           sale.campaign.name,
           sale.saleArea,
           sale.captationType === "ATIVO" ? "Ativo" : "Passivo",

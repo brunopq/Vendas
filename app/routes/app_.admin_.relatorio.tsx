@@ -46,7 +46,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   row += 2
 
   for (const d of data) {
-    XLSX.utils.sheet_add_aoa(ws, [["Usuário", d.name]], {
+    XLSX.utils.sheet_add_aoa(ws, [["Usuário", d.fullName || d.name]], {
       origin: `A${row}`,
     })
     row++

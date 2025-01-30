@@ -53,7 +53,7 @@ class SalesService {
         ),
       with: {
         campaign: { columns: { name: true } },
-        seller: { columns: { name: true } },
+        seller: { columns: { name: true, fullName: true } },
       },
     })
   }

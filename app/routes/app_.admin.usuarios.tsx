@@ -72,6 +72,7 @@ async function handle<const M, Res>(method: M, fn: () => Promise<Res>) {
 
 const userSchema = z.object({
   name: z.string({ required_error: "Insira o nome do usuário" }),
+  fullName: z.string().nullable(),
   password: z.string({ required_error: "Insira uma senha para o usuário" }),
   role: userRoleSchmea({ invalid_type_error: "Tipo de usuário inválido" }),
 })
@@ -200,9 +201,9 @@ export default function Users({ loaderData }: Route.ComponentProps) {
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head className="w-0">Id</Table.Head>
-            <Table.Head className="w-0">Tipo</Table.Head>
             <Table.Head>Nome</Table.Head>
+            <Table.Head className="w-0">Tipo</Table.Head>
+            <Table.Head>Nome completo</Table.Head>
             <Table.Head>Vendas</Table.Head>
             <Table.Head>Comissão individual</Table.Head>
             <Table.Head>Comissão total</Table.Head>
@@ -212,7 +213,9 @@ export default function Users({ loaderData }: Route.ComponentProps) {
         <Table.Body>
           {users.map((u) => (
             <Table.Row key={u.id}>
-              <Table.Cell className="text-sm text-zinc-600">{u.id}</Table.Cell>
+              <Table.Cell className="flex items-center justify-between">
+                {u.name}
+              </Table.Cell>
               <Table.Cell>
                 <span
                   className={cn("rounded-full px-3 py-1 text-sm", {
@@ -223,7 +226,7 @@ export default function Users({ loaderData }: Route.ComponentProps) {
                 </span>
               </Table.Cell>
               <Table.Cell className="flex items-center justify-between">
-                {u.name}
+                {u.fullName}
               </Table.Cell>
               <Table.Cell>{u.totalSales}</Table.Cell>
               <Table.Cell>{brl(u.comission.totalUserComission)}</Table.Cell>
@@ -232,6 +235,7 @@ export default function Users({ loaderData }: Route.ComponentProps) {
                 <UserDropdown
                   id={u.id}
                   name={u.name}
+                  fullName={u.fullName}
                   isAdmin={u.role === "ADMIN"}
                 />
               </Table.Cell>
@@ -246,10 +250,11 @@ export default function Users({ loaderData }: Route.ComponentProps) {
 type UserDropdownProps = {
   id: string
   name: string
+  fullName: string | null
   isAdmin: boolean
 }
 
-function UserDropdown({ id, name, isAdmin }: UserDropdownProps) {
+function UserDropdown({ id, name, fullName, isAdmin }: UserDropdownProps) {
   const fetcher = useFetcher({})
 
   return (
@@ -260,7 +265,7 @@ function UserDropdown({ id, name, isAdmin }: UserDropdownProps) {
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
-        <EditUserModal {...{ id, name, isAdmin }}>
+        <EditUserModal {...{ id, name, fullName, isAdmin }}>
           <DropdownMenu.Item onSelect={(e) => e.preventDefault()}>
             <Edit className="size-5" />
             Editar
@@ -283,6 +288,7 @@ function UserDropdown({ id, name, isAdmin }: UserDropdownProps) {
 type BasicUserFormFieldsProps = {
   user?: Partial<{
     name: string
+    fullName: string | null
     isAdmin: boolean
   }>
 }
@@ -300,6 +306,18 @@ function BasicUserFormFields({ user }: BasicUserFormFieldsProps) {
           />
         )}
       </FormGroup>
+
+      <FormGroup name="fullName" label="Nome completo">
+        {(removeError) => (
+          <Input
+            defaultValue={user?.fullName || undefined}
+            onInput={removeError}
+            name="fullName"
+            placeholder="Nome completo..."
+          />
+        )}
+      </FormGroup>
+
       <FormGroup name="password" label="Senha">
         {(removeError) => (
           <Input
@@ -384,10 +402,17 @@ type EditUserModalProps = {
   children: React.ReactElement
   id: string
   name: string
+  fullName: string | null
   isAdmin: boolean
 }
 
-function EditUserModal({ children, id, name, isAdmin }: EditUserModalProps) {
+function EditUserModal({
+  children,
+  id,
+  name,
+  fullName,
+  isAdmin,
+}: EditUserModalProps) {
   const fetcher = useFetcher<typeof action>({ key: useId() })
   const response = fetcher.data
 
@@ -430,7 +455,7 @@ function EditUserModal({ children, id, name, isAdmin }: EditUserModalProps) {
           <input type="hidden" name="actionType" value="user" />
           <input type="hidden" name="id" value={id} />
 
-          <BasicUserFormFields user={{ name, isAdmin }} />
+          <BasicUserFormFields user={{ name, fullName, isAdmin }} />
 
           <small className="mt-4 text-end text-zinc-600">
             Se não fornecida, a senha não será alterada
