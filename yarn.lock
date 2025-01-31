@@ -321,6 +321,11 @@
   resolved "https://registry.yarnpkg.com/@drizzle-team/brocli/-/brocli-0.10.2.tgz#9757c006a43daaa6f45512e6cf5fabed36fb9da7"
   integrity sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==
 
+"@drizzle-team/brocli@^0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@drizzle-team/brocli/-/brocli-0.11.0.tgz#089c8caa42e9b611b83089c71c034c5c68b50cd1"
+  integrity sha512-hD3pekGiPg0WPCCGAZmusBBJsDqGUR66Y452YgQsZOnkdQ7ViEPKuyP4huUGEZQefp8g34RRodXYmJ2TbCH+tg==
+
 "@esbuild-kit/core-utils@^3.3.2":
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/@esbuild-kit/core-utils/-/core-utils-3.3.2.tgz#186b6598a5066f0413471d7c4d45828e399ba96c"
@@ -828,6 +833,26 @@
   version "0.2.9"
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.9.tgz#50dea3616bc8191fb8e112283b49eaff03e78429"
   integrity sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==
+
+"@hono/node-server@^1.12.0", "@hono/node-server@^1.13.7":
+  version "1.13.8"
+  resolved "https://registry.yarnpkg.com/@hono/node-server/-/node-server-1.13.8.tgz#9e3a21f5eb08f9c04db01efed19f8777827af675"
+  integrity sha512-fsn8ucecsAXUoVxrUil0m13kOEq4mkX4/4QozCqmY+HpGfKl74OYSn8JcMA8GnG0ClfdRI4/ZSeG7zhFaVg+wg==
+
+"@hono/node-ws@^1.0.4":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@hono/node-ws/-/node-ws-1.0.6.tgz#7d2a2ba531ffdba4f0af7510b6abc85d276a510b"
+  integrity sha512-0ivqF6ixLOquLMzrJ02oFGMie+VUDngGg7oyPwAVAPQo6UcRhFwSYoieymwEQoNU5cKmI+p4UB8J8q69Tx3ueQ==
+  dependencies:
+    ws "^8.17.0"
+
+"@hono/vite-dev-server@^0.17.0":
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/@hono/vite-dev-server/-/vite-dev-server-0.17.0.tgz#ec5212bc85ecb096333cd7488bb2800d0dd486dd"
+  integrity sha512-EvGOIj1MoY9uV94onXXz88yWaTxzUK+Mv8LiIEsR/9eSFoVUnHVR0B7l7iNIsxfHYRN7tbPDMWBSnD2RQun3yw==
+  dependencies:
+    "@hono/node-server" "^1.12.0"
+    minimatch "^9.0.3"
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
@@ -2859,6 +2884,11 @@ hasown@^2.0.2:
   dependencies:
     function-bind "^1.1.2"
 
+hono@^4.6.11:
+  version "4.6.20"
+  resolved "https://registry.yarnpkg.com/hono/-/hono-4.6.20.tgz#9cf3d89e50484d3cd13d867a4fb094f09c9a9c20"
+  integrity sha512-5qfNQeaIptMaJKyoJ6N/q4gIq0DBp2FCRaLNuUI3LlJKL4S37DY/rLL1uAxA4wrPB39tJ3s+f7kgI79O4ScSug==
+
 hosted-git-info@^6.0.0, hosted-git-info@^6.1.1:
   version "6.1.3"
   resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-6.1.3.tgz#2ee1a14a097a1236bddf8672c35b613c46c55946"
@@ -3114,7 +3144,7 @@ mime@1.6.0:
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz#32cd9e5c64553bd58d19a568af452acff04981b1"
   integrity sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==
 
-minimatch@^9.0.0, minimatch@^9.0.4:
+minimatch@^9.0.0, minimatch@^9.0.3, minimatch@^9.0.4:
   version "9.0.5"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-9.0.5.tgz#d74f9dd6b57d83d8e98cfb82133b03978bc929e5"
   integrity sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==
@@ -3520,6 +3550,17 @@ react-remove-scroll@^2.6.2:
     tslib "^2.1.0"
     use-callback-ref "^1.3.3"
     use-sidecar "^1.1.3"
+
+react-router-hono-server@^2.8.2:
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/react-router-hono-server/-/react-router-hono-server-2.8.2.tgz#fec628201f198cedff02c6afefcb9a08b3e90d85"
+  integrity sha512-oXK0PwfDJ+8ktnUfEAUaKhIne4DS1kTghluBado3PkhtQC3LUiUpib5dcrSccg9afxj8FnTC+JD8F+c4GrGcoA==
+  dependencies:
+    "@drizzle-team/brocli" "^0.11.0"
+    "@hono/node-server" "^1.13.7"
+    "@hono/node-ws" "^1.0.4"
+    "@hono/vite-dev-server" "^0.17.0"
+    hono "^4.6.11"
 
 react-router@^7.0.0:
   version "7.1.3"
@@ -4183,6 +4224,11 @@ wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
+
+ws@^8.17.0:
+  version "8.18.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.0.tgz#0d7505a6eafe2b0e712d232b42279f53bc289bbc"
+  integrity sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==
 
 "xlsx@https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz":
   version "0.20.3"
