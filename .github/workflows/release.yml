@@ -22,9 +22,9 @@ jobs:
     - name: Build application
       run: bun run build
     - name: Zip application
-      run: zip -r artifact.zip dist
+      run: zip -r build.zip dist
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
-        files: artifact.zip
+        files: build.zip
   
