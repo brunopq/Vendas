@@ -21,6 +21,7 @@ await Bun.build({
 
 await Bun.$`cp -r --parents ./build/client/ ./dist`
 await Bun.$`cp -r --parents ./drizzle ./dist`
+await Bun.$`cp sa-east-1-bundle.pem ./dist`
 await Bun.$`rm -rf ./build`
 
 console.log("Application built!")
