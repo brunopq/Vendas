@@ -20,14 +20,6 @@ const nanoid = customAlphabet(
 )
 
 export const captationTypes = pgEnum("captation_type", ["ATIVO", "PASSIVO"])
-export const saleArea = pgEnum("sale_area", [
-  "Cível estadual",
-  "Cível federal",
-  "Penal",
-  "Previdenciário",
-  "Trabalhista",
-  "Tributário",
-])
 
 export const userRoles = pgEnum("user_roles", ["ADMIN", "SELLER"])
 
@@ -62,6 +54,15 @@ export const campaignRelations = relations(campaign, ({ many }) => ({
   sales: many(sale),
 }))
 
+export const origin = pgTable("origins", {
+  id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
+  name: text("name").notNull(),
+})
+
+export const originRelations = relations(origin, ({ many }) => ({
+  sales: many(sale),
+}))
+
 export const sale = pgTable("sales", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
   date: date("date").notNull(),
@@ -72,7 +73,9 @@ export const sale = pgTable("sales", {
   campaign: char("campaign", { length: idLength })
     .references(() => campaign.id)
     .notNull(),
-  saleArea: saleArea("sale_area").notNull(),
+  origin: char("origin", { length: idLength })
+    .references(() => origin.id)
+    .notNull(),
   // TODO: make a separate table, integrate with CRM...
   client: text("client").notNull(),
   adverseParty: text("adverse_party").notNull(),
@@ -91,6 +94,7 @@ export const saleRelations = relations(sale, ({ one }) => ({
     fields: [sale.campaign],
     references: [campaign.id],
   }),
+  origin: one(origin, { fields: [sale.origin], references: [origin.id] }),
 }))
 
 //
@@ -98,8 +102,6 @@ export const saleRelations = relations(sale, ({ one }) => ({
 
 export const captationTypeSchema = (params?: z.RawCreateParams) =>
   z.enum(captationTypes.enumValues, params)
-export const saleAreaSchema = (params?: z.RawCreateParams) =>
-  z.enum(saleArea.enumValues, params)
 export const userRoleSchmea = (params?: z.RawCreateParams) =>
   z.enum(userRoles.enumValues, params)
 
@@ -109,18 +111,23 @@ export const newUserSchema = createInsertSchema(user)
 export const campaignSchema = createSelectSchema(campaign)
 export const newCampaignSchema = createInsertSchema(campaign)
 
+export const originSchema = createSelectSchema(origin)
+export const newOriginSchema = createInsertSchema(origin)
+
 export const saleSchema = createSelectSchema(sale)
 export const newSaleSchema = createInsertSchema(sale)
 
 export type CaptationType = z.infer<ReturnType<typeof captationTypeSchema>>
-export type SaleArea = z.infer<ReturnType<typeof saleAreaSchema>>
 export type UserRole = z.infer<ReturnType<typeof userRoleSchmea>>
 
 export type User = z.infer<typeof userSchema>
 export type NewUser = z.infer<typeof newUserSchema>
 
-export type Sale = z.infer<typeof saleSchema>
-export type NewSale = z.infer<typeof newSaleSchema>
-
 export type Campaign = z.infer<typeof campaignSchema>
 export type NewCampaign = z.infer<typeof newCampaignSchema>
+
+export type Origin = z.infer<typeof originSchema>
+export type NewOrigin = z.infer<typeof newOriginSchema>
+
+export type Sale = z.infer<typeof saleSchema>
+export type NewSale = z.infer<typeof newSaleSchema>

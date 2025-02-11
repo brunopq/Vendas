@@ -1,5 +1,5 @@
-import type { MetaFunction } from "react-router";
-import { Link, Outlet, useLocation } from "react-router";
+import type { MetaFunction } from "react-router"
+import { Link, Outlet, useLocation } from "react-router"
 
 import { cn, maxWidth } from "~/lib/utils"
 
@@ -30,16 +30,27 @@ export default function Admin() {
             >
               usuários
             </Link>
+            <li>
+              <Link
+                className={cn(
+                  "underline-offset-2 transition-colors hover:text-primary-600",
+                  isLinkActive("campanhas") && "underline",
+                )}
+                to="campanhas"
+              >
+                campanhas
+              </Link>
+            </li>{" "}
           </li>
           <li>
             <Link
               className={cn(
                 "underline-offset-2 transition-colors hover:text-primary-600",
-                isLinkActive("campanhas") && "underline",
+                isLinkActive("origens") && "underline",
               )}
-              to="campanhas"
+              to="origens"
             >
-              campanhas
+              origens
             </Link>
           </li>
         </ul>
