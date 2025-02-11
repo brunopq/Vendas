@@ -37,6 +37,7 @@ export const user = pgTable("users", {
   fullName: text("full_name"),
   role: userRoles("user_role").notNull(),
   passwordHash: text("password_hash").notNull(),
+  accountActive: boolean("account_active").default(true).notNull(),
 })
 
 export const userRelations = relations(user, ({ many }) => ({

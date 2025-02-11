@@ -1,4 +1,4 @@
-import { and, between, eq, sql } from "drizzle-orm"
+import { and, between, desc, eq, not, sql } from "drizzle-orm"
 import { endOfMonth, startOfMonth } from "date-fns"
 
 import { sale, user } from "~/db/schema"
@@ -26,7 +26,11 @@ class UserService {
     return users
   }
 
-  async listByMonth(month: number, year: number) {
+  async listByMonth(
+    month: number,
+    year: number,
+    options = { onlyActive: true },
+  ) {
     const date = validateDate(month, year)
 
     const users = await db
@@ -35,9 +39,11 @@ class UserService {
         name: user.name,
         fullName: user.fullName,
         role: user.role,
+        accountActive: user.accountActive,
         totalSales: sql<number>`cast(count(${sale.id}) as int)`,
       })
       .from(user)
+      .where(options.onlyActive ? eq(user.accountActive, true) : undefined)
       .leftJoin(
         sale,
         and(
@@ -50,12 +56,17 @@ class UserService {
         ),
       )
       .groupBy(user.id)
+      .orderBy(desc(user.accountActive))
 
     return users
   }
 
-  async listWithComissions(month: number, year: number) {
-    const users = await this.listByMonth(month, year)
+  async listWithComissions(
+    month: number,
+    year: number,
+    options = { onlyActive: false },
+  ) {
+    const users = await this.listByMonth(month, year, options)
 
     const usersWithComissions = await Promise.all(
       users.map(async (user) => {
@@ -84,6 +95,7 @@ class UserService {
         fullName: true,
         role: true,
         passwordHash: false,
+        accountActive: true,
       },
     })
 

@@ -1,43 +1,91 @@
-import { redirect } from "react-router";
+import { redirect, type Session } from "react-router"
 
-import type { DomainUser } from "~/services/AuthService"
-import { getUser } from "~/session"
+import AuthService, { type DomainUser } from "~/services/AuthService"
+import { destroySession, getSession, type SessionData } from "~/session"
 
 export async function getUserOrRedirect(
   request: Request,
+  redirectPath: { noredirect: true },
+): Promise<DomainUser | null>
+export async function getUserOrRedirect(
+  request: Request,
   redirectPath?: string,
-): Promise<DomainUser> {
-  const user = await getUser(request)
+): Promise<DomainUser>
+export async function getUserOrRedirect(
+  request: Request,
+  redirectPath?: string | { noredirect: true },
+): Promise<DomainUser | null> {
+  const session = await getSession(request)
 
-  assertUser(user, redirectPath)
+  if (typeof redirectPath === "object" && "noredirect" in redirectPath) {
+    try {
+      return await assertUser(session)
+    } catch (redirect) {
+      return null
+    }
+  }
 
-  return user
+  return await assertUser(session, redirectPath)
 }
 
 export async function getAdminOrRedirect(
   request: Request,
+  redirectPath: { noredirect: true },
+): Promise<DomainUser | null>
+export async function getAdminOrRedirect(
+  request: Request,
   redirectPath?: string,
+): Promise<DomainUser>
+export async function getAdminOrRedirect(
+  request: Request,
+  redirectPath?: string | { noredirect: true },
+): Promise<DomainUser | null> {
+  const session = await getSession(request)
+
+  if (typeof redirectPath === "object" && "noredirect" in redirectPath) {
+    try {
+      return await assertAdmin(session)
+    } catch (redirect) {
+      return null
+    }
+  }
+
+  return await assertAdmin(session, redirectPath)
+}
+
+export async function assertUser(
+  session: Session<SessionData>,
+  redirectPath = "/",
 ): Promise<DomainUser> {
-  const user = await getUser(request)
-
-  assertAdmin(user, redirectPath)
-
-  return user
-}
-
-export function assertUser(
-  user: DomainUser | null,
-  redirectPath = "/",
-): asserts user is DomainUser {
+  const user = session.data.user
   if (!user) {
+    throw redirect(redirectPath, {
+      headers: {
+        "Set-Cookie": await destroySession(session),
+      },
+    })
+  }
+  try {
+    const dbUser = await AuthService.getByName(user.name)
+
+    if (!dbUser.accountActive) {
+      throw redirect(redirectPath)
+    }
+
+    return dbUser
+  } catch (e) {
     throw redirect(redirectPath)
   }
 }
-export function assertAdmin(
-  user: DomainUser | null,
+export async function assertAdmin(
+  session: Session<SessionData>,
   redirectPath = "/",
-): asserts user is DomainUser {
-  if (!user || user.role !== "ADMIN") {
+): Promise<DomainUser> {
+  const dbUser = await assertUser(session, redirectPath)
+
+  if (dbUser.role !== "ADMIN") {
     throw redirect(redirectPath)
   }
+
+  return dbUser
 }

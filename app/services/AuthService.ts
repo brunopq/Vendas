@@ -6,7 +6,8 @@ import { sale, user, type User } from "~/db/schema"
 
 export type DomainUser = Omit<User, "passwordHash">
 export type NewUser = Omit<DomainUser, "id"> & { password: string }
-export type LoginUser = Omit<DomainUser, "id" | "role" | "fullName"> & {
+export type LoginUser = {
+  name: string
   password: string
 }
 export type UpdateUser = Partial<Omit<DomainUser, "id">>
@@ -37,6 +38,7 @@ class AuthService {
         fullName: true,
         role: true,
         passwordHash: false,
+        accountActive: true,
       },
     })
 
@@ -56,6 +58,10 @@ class AuthService {
       throw new Error("User not found")
     }
 
+    if (!user.accountActive) {
+      throw new Error("User account not active")
+    }
+
     const passwordMatches = await verifyPassword(
       userInfo.password,
       user.passwordHash,
@@ -69,6 +75,7 @@ class AuthService {
       name: user.name,
       fullName: user.fullName,
       role: user.role,
+      accountActive: user.accountActive,
     }
   }
 
@@ -109,6 +116,7 @@ class AuthService {
       name: createdUser.name,
       fullName: createdUser.fullName,
       role: createdUser.role,
+      accountActive: createdUser.accountActive,
     }
   }
 
@@ -138,6 +146,7 @@ class AuthService {
         name: fields.name,
         fullName: fields.fullName,
         role: fields.role,
+        accountActive: fields.accountActive,
       })
       .where(eq(user.id, id))
       .returning()
@@ -147,6 +156,7 @@ class AuthService {
       name: updated.name,
       fullName: updated.fullName,
       role: updated.role,
+      accountActive: updated.accountActive,
     }
   }
 

@@ -6,7 +6,15 @@ import {
   useFetcher,
   useSearchParams,
 } from "react-router"
-import { Edit, EllipsisVertical, Plus, Trash2 } from "lucide-react"
+import {
+  Edit,
+  EllipsisVertical,
+  Plus,
+  ShieldOffIcon,
+  Trash2,
+  UserCheckIcon,
+  UserXIcon,
+} from "lucide-react"
 import { useEffect, useId } from "react"
 import { z, ZodError } from "zod"
 
@@ -94,7 +102,7 @@ async function handleNewUser(data: Record<string, unknown>) {
 
   const parsed = userSchema.parse(data)
 
-  return await AuthService.create(parsed)
+  return await AuthService.create({ ...parsed, accountActive: true })
 }
 
 async function handleUpdateUser(data: Record<string, unknown>) {
@@ -120,6 +128,16 @@ async function handleDeleteUser(data: Record<string, unknown>) {
   await AuthService.delete(String(id))
 }
 
+const handleChangeAccountActiveSchema = z.object({
+  id: z.string(),
+  accountActive: z.enum(["true", "false"]).transform((v) => v === "true"),
+})
+async function handleChangeAccountActive(data: Record<string, unknown>) {
+  const { id, accountActive } = handleChangeAccountActiveSchema.parse(data)
+
+  await AuthService.updateUser(id, { accountActive: accountActive })
+}
+
 export async function action({ request }: Route.ActionArgs) {
   await getAdminOrRedirect(request)
 
@@ -141,6 +159,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (request.method === "PUT") {
     return handle("PUT", () => handleUpdateUser(data))
+  }
+  if (request.method === "PATCH") {
+    return handle("PATCH", () => handleChangeAccountActive(data))
   }
   console.log("method not implemented")
 
@@ -224,7 +245,10 @@ export default function Users({ loaderData }: Route.ComponentProps) {
         </Table.Header>
         <Table.Body>
           {users.map((u) => (
-            <Table.Row key={u.id}>
+            <Table.Row
+              className={u.accountActive ? "opacity-100" : "opacity-75"}
+              key={u.id}
+            >
               <Table.Cell className="flex items-center justify-between">
                 {u.name}
               </Table.Cell>
@@ -249,6 +273,7 @@ export default function Users({ loaderData }: Route.ComponentProps) {
                   name={u.name}
                   fullName={u.fullName}
                   isAdmin={u.role === "ADMIN"}
+                  accountActive={u.accountActive}
                 />
               </Table.Cell>
             </Table.Row>
@@ -264,9 +289,16 @@ type UserDropdownProps = {
   name: string
   fullName: string | null
   isAdmin: boolean
+  accountActive: boolean
 }
 
-function UserDropdown({ id, name, fullName, isAdmin }: UserDropdownProps) {
+function UserDropdown({
+  id,
+  name,
+  fullName,
+  isAdmin,
+  accountActive,
+}: UserDropdownProps) {
   const fetcher = useFetcher({})
 
   return (
@@ -283,6 +315,33 @@ function UserDropdown({ id, name, fullName, isAdmin }: UserDropdownProps) {
             Editar
           </DropdownMenu.Item>
         </EditUserModal>
+
+        <DropdownMenu.Item
+          onClick={() =>
+            fetcher.submit(
+              {
+                actionType: "setAccountActive",
+                id: id,
+                accountActive: !accountActive,
+              },
+              { method: "PATCH" },
+            )
+          }
+          variant={accountActive ? "danger" : "normal"}
+        >
+          {accountActive ? (
+            <>
+              <UserXIcon className="size-5" />
+              Desativar
+            </>
+          ) : (
+            <>
+              <UserCheckIcon className="size-5" />
+              Ativar
+            </>
+          )}
+        </DropdownMenu.Item>
+
         <DropdownMenu.Item
           onClick={() =>
             fetcher.submit({ actionType: "user", id: id }, { method: "DELETE" })

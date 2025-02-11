@@ -3,11 +3,12 @@ import type { MetaFunction } from "react-router"
 import { Form, redirect, useNavigation } from "react-router"
 import { z } from "zod"
 
-import { commitSession, getSession, getUser } from "~/session"
+import { commitSession, getSession } from "~/session"
 
 import AuthService from "~/services/AuthService"
 
 import { Button, Input } from "~/components/ui"
+import { getUserOrRedirect } from "~/lib/authGuard"
 
 export const meta: MetaFunction = () => [{ title: "Login | Vendas Iboti" }]
 
@@ -17,7 +18,7 @@ const formValidator = z.object({
 })
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const user = await getUser(request)
+  const user = await getUserOrRedirect(request, { noredirect: true })
 
   if (user) {
     throw redirect("/app")
