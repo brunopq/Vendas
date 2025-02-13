@@ -190,8 +190,8 @@ export default function App({ loaderData }: Route.ComponentProps) {
         <header className="mb-4 flex items-center justify-between gap-2">
           <h2 className="font-medium text-2xl">Este mês</h2>
 
-          {user.role === "ADMIN" && (
-            <span className="flex items-center gap-4">
+          <span className="flex items-center gap-4">
+            {user.role === "ADMIN" && (
               <Button size="sm">
                 <Link
                   reloadDocument
@@ -200,16 +200,16 @@ export default function App({ loaderData }: Route.ComponentProps) {
                   Exportar dados
                 </Link>
               </Button>
+            )}
 
-              <DateSelection
-                month={month}
-                year={year}
-                onChange={({ month, year }) => {
-                  setSearchParams({ mes: String(month), ano: String(year) })
-                }}
-              />
-            </span>
-          )}
+            <DateSelection
+              month={month}
+              year={year}
+              onChange={({ month, year }) => {
+                setSearchParams({ mes: String(month), ano: String(year) })
+              }}
+            />
+          </span>
         </header>
 
         <div className="grid grid-cols-6 gap-4">
