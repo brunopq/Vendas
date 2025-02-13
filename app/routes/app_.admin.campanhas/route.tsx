@@ -272,7 +272,7 @@ export default function Campaigns({ loaderData }: Route.ComponentProps) {
           </CopyCampaignsModal>
           <NewCampaignModal>
             <Button icon="left" className="text-sm">
-              <Plus /> Novo
+              <Plus className="size-5" /> Novo
             </Button>
           </NewCampaignModal>
         </div>
