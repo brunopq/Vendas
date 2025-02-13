@@ -2,7 +2,8 @@ import { eq } from "drizzle-orm"
 import { db } from "~/db"
 import { type Origin, origin } from "~/db/schema"
 
-type NewOrigin = Omit<Origin, "id">
+export type DomainOrigin = Origin
+type NewOrigin = Omit<DomainOrigin, "id">
 
 class OriginService {
   async getOrigins(): Promise<Origin[]> {

@@ -42,7 +42,7 @@ export async function loader({ request }: Route.LoaderArgs) {
           format(sale.date, "dd/MM/yyyy"),
           sale.seller.fullName || sale.seller.name,
           sale.campaign.name,
-          sale.saleArea,
+          sale.origin?.name || "Origem não especificada",
           sale.captationType === "ATIVO" ? "Ativo" : "Passivo",
           sale.isRepurchase ? "Sim" : "Não",
           sale.client,

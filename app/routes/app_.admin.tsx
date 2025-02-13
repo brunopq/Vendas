@@ -30,18 +30,20 @@ export default function Admin() {
             >
               usuários
             </Link>
-            <li>
-              <Link
-                className={cn(
-                  "underline-offset-2 transition-colors hover:text-primary-600",
-                  isLinkActive("campanhas") && "underline",
-                )}
-                to="campanhas"
-              >
-                campanhas
-              </Link>
-            </li>{" "}
           </li>
+
+          <li>
+            <Link
+              className={cn(
+                "underline-offset-2 transition-colors hover:text-primary-600",
+                isLinkActive("campanhas") && "underline",
+              )}
+              to="campanhas"
+            >
+              campanhas
+            </Link>
+          </li>
+
           <li>
             <Link
               className={cn(

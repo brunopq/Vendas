@@ -73,9 +73,7 @@ export const sale = pgTable("sales", {
   campaign: char("campaign", { length: idLength })
     .references(() => campaign.id)
     .notNull(),
-  origin: char("origin", { length: idLength })
-    .references(() => origin.id)
-    .notNull(),
+  origin: char("origin", { length: idLength }).references(() => origin.id),
   // TODO: make a separate table, integrate with CRM...
   client: text("client").notNull(),
   adverseParty: text("adverse_party").notNull(),

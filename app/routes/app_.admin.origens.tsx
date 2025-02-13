@@ -285,12 +285,12 @@ function NewOriginModal() {
   useEffect(() => {
     if (!postUserAction) return
     if (postUserAction.result.ok) {
-      toast({ title: "Usuário criado com sucesso!" })
+      toast({ title: "Origem criada com sucesso!" })
       console.log(postUserAction.result.value)
     } else if (postUserAction.result.error.find((e) => e.type === "backend")) {
       toast({
         title: "Erro desconhecido",
-        description: "Não foi possível criar o usuário :(",
+        description: "Não foi possível criar a origem :(",
         variant: "destructive",
       })
     }

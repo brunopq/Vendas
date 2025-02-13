@@ -1,21 +1,21 @@
-import { useFetcher } from "react-router";
+import { useFetcher } from "react-router"
 import { useEffect } from "react"
 import { format, parse } from "date-fns"
 import { utc } from "@date-fns/utc"
 import { z } from "zod"
 
-import { captationTypeSchema, saleAreaSchema } from "~/db/schema"
+import { captationTypeSchema } from "~/db/schema"
 
 import type { DomainCampaign } from "~/services/CampaignService"
+import type { DomainOrigin } from "~/services/OriginService"
 import type { DomainSale } from "~/services/SalesService"
 
 import type { loader as campaignLoader } from "~/routes/app.campaigns"
+import type { loader as originLoader } from "~/routes/app.origins"
 
 import { Input, Select, Checkbox, RadioGroup, BrlInput, Textarea } from "./ui"
 import FormGroup from "./FormGroup"
 import { brl } from "~/lib/formatters"
-
-const saleAreas = saleAreaSchema().options
 
 export const saleFormSchema = z.object({
   date: z
@@ -23,10 +23,7 @@ export const saleFormSchema = z.object({
     .date("Data mal formatada"),
   seller: z.string({ message: "Seller is required" }),
   campaign: z.string({ required_error: "Selecione a campanha da venda" }),
-  saleArea: saleAreaSchema({
-    required_error: "Selecione a área da venda",
-    invalid_type_error: "Área de venda inválido",
-  }),
+  origin: z.string({ required_error: "Selecione uma origem para a venda" }),
   captationType: captationTypeSchema({
     required_error: "Escolha um tipo de captação",
     invalid_type_error: "Tipo de captação inválido",
@@ -52,10 +49,13 @@ export type SaleFormFieldsProps = {
 
 export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
   const campaignsFetcher = useFetcher<typeof campaignLoader>()
+  const originsFetcher = useFetcher<typeof originLoader>()
 
   const campaignData = campaignsFetcher.data
+  const originData = originsFetcher.data
 
   let campaigns: DomainCampaign[] = []
+  let origins: DomainOrigin[] = []
   let date = defaults?.date
     ? parse(defaults.date, "yyyy-MM-dd", new Date(), { in: utc })
     : new Date()
@@ -64,13 +64,17 @@ export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
     campaigns = campaignData.campaigns
     date = new Date(campaignData.date)
   }
+  if (originData) {
+    origins = originData.origins
+  }
 
   useEffect(() => {
     const date = defaults?.date ?? new Date()
     campaignsFetcher.load(
       `/app/campaigns?date=${format(date, "yyyy-MM-dd", { in: utc })}`,
     )
-  }, [campaignsFetcher.load, defaults?.date])
+    originsFetcher.load("/app/origins")
+  }, [originsFetcher.load, campaignsFetcher.load, defaults?.date])
 
   return (
     <>
@@ -102,7 +106,7 @@ export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
         )}
       </FormGroup>
 
-      <FormGroup name="campaign" label="Campanha">
+      <FormGroup name="campaign" label="Área">
         {(removeErrors) => (
           <Select.Root
             defaultValue={defaults?.campaign}
@@ -124,20 +128,21 @@ export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
         )}
       </FormGroup>
 
-      <FormGroup name="saleArea" label="Área">
+      <FormGroup name="origin" label="Origem">
         {(removeErrors) => (
           <Select.Root
-            defaultValue={defaults?.saleArea}
+            defaultValue={defaults?.origin ?? undefined}
+            disabled={originsFetcher.state === "loading"}
             onValueChange={removeErrors}
-            name="saleArea"
+            name="origin"
           >
             <Select.Trigger>
               <Select.Value placeholder="Selecione..." />
             </Select.Trigger>
             <Select.Content>
-              {saleAreas.map((area) => (
-                <Select.Item key={area} value={area}>
-                  {area}
+              {origins.map((c) => (
+                <Select.Item key={c.id} value={c.id}>
+                  {c.name}
                 </Select.Item>
               ))}
             </Select.Content>

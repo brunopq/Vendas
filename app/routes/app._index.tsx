@@ -26,7 +26,7 @@ import SalesService, {
   type CaptationType,
 } from "~/services/SalesService"
 
-import { Button, Table, DropdownMenu, Dialog } from "~/components/ui"
+import { Button, Table, DropdownMenu, Dialog, Tabs } from "~/components/ui"
 
 import { PieChart } from "~/components/charts/pie"
 import { BarChart } from "~/components/charts/bar"
@@ -146,6 +146,11 @@ export default function App({ loaderData }: Route.ComponentProps) {
     salesByCampaign[sale.campaign.name] =
       salesByCampaign[sale.campaign.name] + 1 || 1
   }
+  const salesByOrigin: Record<string, number> = {}
+  for (const sale of data.total) {
+    const name = sale.origin?.name || "Sem origem"
+    salesByOrigin[name] = salesByOrigin[name] + 1 || 1
+  }
 
   const newClientsByType: Record<CaptationType, number> = {
     ATIVO: 0,
@@ -209,22 +214,43 @@ export default function App({ loaderData }: Route.ComponentProps) {
 
         <div className="grid grid-cols-6 gap-4">
           <div className="col-span-2 row-span-2 flex flex-col items-center rounded-md border border-primary-200 bg-primary-100 p-4 shadow-sm">
-            <h3 className="mb-4 font-semibold text-lg text-primary-800">
-              Campanhas
-            </h3>
-            {/* <Tabs.Root className="w-full" defaultValue="graph">
+            <Tabs.Root className="w-full" defaultValue="campaigns">
               <Tabs.List>
-                <Tabs.Trigger value="graph">Gráfico</Tabs.Trigger>
-                <Tabs.Trigger value="table">Tabela</Tabs.Trigger>
+                <Tabs.Trigger value="campaigns">Áreas</Tabs.Trigger>
+                <Tabs.Trigger value="origins">Origens</Tabs.Trigger>
               </Tabs.List>
 
-              <Tabs.Content value="graph"> */}
-            <CampaignsChart salesByCampaign={salesByCampaign} />
-            {/* </Tabs.Content>
-              <Tabs.Content value="table">
-                <CampaignsTable />
+              <Tabs.Content value="campaigns">
+                <PieChart
+                  data={Object.entries(salesByCampaign).map(([k, v]) => ({
+                    id: k,
+                    area: k,
+                    value: v,
+                  }))}
+                  name={(i) => i.area}
+                  value={(i) => i.value}
+                  colorStops={[
+                    "var(--color-accent-300)",
+                    "var(--color-accent-700)",
+                  ]}
+                />
               </Tabs.Content>
-            </Tabs.Root> */}
+              <Tabs.Content value="origins">
+                <PieChart
+                  data={Object.entries(salesByOrigin).map(([k, v]) => ({
+                    id: k,
+                    area: k,
+                    value: v,
+                  }))}
+                  name={(i) => i.area}
+                  value={(i) => i.value}
+                  colorStops={[
+                    "var(--color-accent-300)",
+                    "var(--color-accent-700)",
+                  ]}
+                />
+              </Tabs.Content>
+            </Tabs.Root>
           </div>
 
           <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-teal-300 bg-teal-100 p-6 shadow-sm">
@@ -412,66 +438,6 @@ export default function App({ loaderData }: Route.ComponentProps) {
   )
 }
 
-type CampaignsChartProps = {
-  salesByCampaign: Record<string, number>
-}
-
-function CampaignsChart({ salesByCampaign }: CampaignsChartProps) {
-  return (
-    <PieChart
-      data={Object.entries(salesByCampaign).map(([k, v]) => ({
-        id: k,
-        area: k,
-        value: v,
-      }))}
-      name={(i) => i.area}
-      value={(i) => i.value}
-      colorStops={["var(--color-accent-300)", "var(--color-accent-700)"]}
-    />
-  )
-}
-
-function CampaignsTable() {
-  const { data } = useLoaderData<typeof loader>()
-
-  // TODO: aggregate on the server
-  const salesByCampaign: Record<
-    string,
-    { sales: number; estimatedValue: number }
-  > = {}
-  for (const sale of data.total) {
-    const curr = salesByCampaign[sale.campaign.name] || {
-      estimatedValue: 0,
-      sales: 0,
-    }
-
-    curr.estimatedValue += Number(sale.estimatedValue) || 0
-    curr.sales++
-    salesByCampaign[sale.campaign.name] = curr
-  }
-
-  return (
-    <div className="grid grid-cols-[auto_auto_auto] gap-2">
-      <div className="col-span-3 mb-1 grid grid-cols-subgrid font-medium text-sm text-zinc-500">
-        <span>Campanha</span> <span>Vendas</span> <span>Total estimado</span>
-      </div>
-
-      {Object.entries(salesByCampaign).map(
-        ([campaign, { sales, estimatedValue }]) => (
-          <div
-            key={campaign}
-            className="col-span-3 grid grid-cols-subgrid text-sm text-zinc-900"
-          >
-            <span>{campaign}</span>
-            <span>{sales}</span>
-            <span>{brl(estimatedValue)}</span>
-          </div>
-        ),
-      )}
-    </div>
-  )
-}
-
 // holy shit
 const defaultColumns: ColumnDef<
   Awaited<ReturnType<typeof loader>>["data"]["total"][number]
@@ -612,13 +578,13 @@ const defaultColumns: ColumnDef<
   },
   {
     id: "campaign",
-    header: "Campanha",
+    header: "Área",
     accessorKey: "campaign.name",
   },
   {
     id: "saleArea",
-    header: "Área",
-    accessorKey: "saleArea",
+    header: "Origem",
+    accessorKey: "origin.name",
   },
   {
     id: "isRepurchase",
