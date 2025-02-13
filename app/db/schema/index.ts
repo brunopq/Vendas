@@ -57,6 +57,7 @@ export const campaignRelations = relations(campaign, ({ many }) => ({
 export const origin = pgTable("origins", {
   id: char("id", { length: idLength }).$defaultFn(nanoid).primaryKey(),
   name: text("name").notNull(),
+  active: boolean("active").default(true).notNull(),
 })
 
 export const originRelations = relations(origin, ({ many }) => ({

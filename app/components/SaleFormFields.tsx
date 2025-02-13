@@ -73,7 +73,7 @@ export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
     campaignsFetcher.load(
       `/app/campaigns?date=${format(date, "yyyy-MM-dd", { in: utc })}`,
     )
-    originsFetcher.load("/app/origins")
+    originsFetcher.load("/app/origins?includeInactive=false")
   }, [originsFetcher.load, campaignsFetcher.load, defaults?.date])
 
   return (

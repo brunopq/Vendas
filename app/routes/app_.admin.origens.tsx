@@ -2,9 +2,16 @@ import OriginService from "~/services/OriginService"
 import type { Route } from "./+types/app_.admin.origens"
 
 import { getAdminOrRedirect } from "~/lib/authGuard"
-import { maxWidth } from "~/lib/utils"
+import { cn, maxWidth } from "~/lib/utils"
 import { Button, Dialog, DropdownMenu, Input, Table } from "~/components/ui"
-import { EditIcon, EllipsisVertical, Plus, Trash2 } from "lucide-react"
+import {
+  EditIcon,
+  EllipsisVertical,
+  Plus,
+  PowerIcon,
+  PowerOffIcon,
+  Trash2,
+} from "lucide-react"
 import { Form, useActionData, useFetcher } from "react-router"
 import { useEffect, useId } from "react"
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
@@ -45,6 +52,10 @@ async function handle<const M, Res>(method: M, fn: () => Promise<Res>) {
 
 const originSchema = z.object({
   name: z.string({ required_error: "Insira o nome da origem" }),
+  active: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
 })
 const updateOriginSchema = originSchema.partial().extend({ id: z.string() })
 
@@ -125,6 +136,7 @@ export default function Origins({ loaderData }: Route.ComponentProps) {
       <Table.Root>
         <Table.Header>
           <Table.Row>
+            <Table.Head className="w-0">Estado</Table.Head>
             <Table.Head>Nome</Table.Head>
             <Table.Head />
           </Table.Row>
@@ -132,11 +144,20 @@ export default function Origins({ loaderData }: Route.ComponentProps) {
         <Table.Body>
           {origins.map((o) => (
             <Table.Row key={o.id}>
+              <Table.Cell className="w-0">
+                {o.active ? (
+                  <span className="rounded-full bg-primary-100 px-3 py-1 text-primary-800 text-sm">
+                    Ativo
+                  </span>
+                ) : (
+                  <span className="text-sm">Inativo</span>
+                )}
+              </Table.Cell>
               <Table.Cell className="flex items-center justify-between">
                 {o.name}
               </Table.Cell>
               <Table.Cell className="w-0">
-                <OriginDropdown id={o.id} name={o.name} />
+                <OriginDropdown {...o} />
               </Table.Cell>
             </Table.Row>
           ))}
@@ -149,9 +170,10 @@ export default function Origins({ loaderData }: Route.ComponentProps) {
 type OriginDropdownProps = {
   id: string
   name: string
+  active: boolean
 }
 
-function OriginDropdown({ id, name }: OriginDropdownProps) {
+function OriginDropdown({ id, name, active }: OriginDropdownProps) {
   const fetcher = useFetcher({})
 
   return (
@@ -168,6 +190,25 @@ function OriginDropdown({ id, name }: OriginDropdownProps) {
             Editar
           </DropdownMenu.Item>
         </EditOriginModal>
+
+        <DropdownMenu.Item
+          onClick={() =>
+            fetcher.submit({ id: id, active: !active }, { method: "PUT" })
+          }
+          variant={active ? "danger" : "normal"}
+        >
+          {active ? (
+            <>
+              <PowerOffIcon className="size-5" />
+              Desativar
+            </>
+          ) : (
+            <>
+              <PowerIcon className="size-5" />
+              Ativar
+            </>
+          )}
+        </DropdownMenu.Item>
 
         <DropdownMenu.Item
           onClick={() => fetcher.submit({ id: id }, { method: "DELETE" })}

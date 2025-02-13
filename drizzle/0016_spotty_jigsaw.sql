@@ -1,0 +1,1 @@
+ALTER TABLE "origins" ADD COLUMN "active" boolean DEFAULT true NOT NULL;
