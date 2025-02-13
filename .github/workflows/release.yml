@@ -22,7 +22,7 @@ jobs:
     - name: Build application
       run: bun run build
     - name: Rename dist folder to the current tag
-      run: mv -r dist ${{ github.ref_name }}
+      run: mv dist ${{ github.ref_name }}
     - name: Zip application
       run: zip -r build.zip ${{ github.ref_name }}
     - name: Release
