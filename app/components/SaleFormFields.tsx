@@ -237,6 +237,7 @@ export default function SaleFormFields({ defaults }: SaleFormFieldsProps) {
       <FormGroup name="indication" label="Indicado por:">
         <Input
           placeholder="Nome"
+          name="indication"
           defaultValue={defaults?.indication ?? undefined}
         />
       </FormGroup>
