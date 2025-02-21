@@ -108,7 +108,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="Relatório de comissões ${month}-${year}"`,
+      "Content-Disposition": `attachment; filename="Relatório de comissões ${month}-${year}.xlsx"`,
     },
   })
 }
