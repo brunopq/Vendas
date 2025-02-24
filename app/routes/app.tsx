@@ -24,9 +24,11 @@ export default function App({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <nav className={maxWidth("flex items-center justify-between gap-4 py-4")}>
-        <strong className="font-semibold text-lg text-primary-800">
-          Olá, {user.name}
-        </strong>
+        <img
+          src="logo.png"
+          alt="logo iboti"
+          className="pointer-events-none max-h-10"
+        />
 
         {user.role === "ADMIN" && (
           <Button className="ml-auto" size="sm" variant="link" asChild>

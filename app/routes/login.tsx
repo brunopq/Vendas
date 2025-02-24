@@ -58,6 +58,12 @@ export default function Login({ actionData }: Route.ComponentProps) {
   return (
     <div className="grid h-screen place-items-center bg-zinc-300">
       <div className="max-w-[calc(100vw-1rem)] rounded bg-zinc-200 p-6 shadow-sm">
+        <img
+          src="logo.png"
+          alt="logo iboti"
+          className="-translate-x-1/2 pointer-events-none absolute top-8 left-1/2 h-auto w-64"
+        />
+
         <h2 className="mb-6 text-center font-semibold text-primary-800 text-xl">
           Login
         </h2>
