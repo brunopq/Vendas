@@ -3,6 +3,8 @@ import type { MetaFunction } from "react-router"
 import { Link, Outlet } from "react-router"
 import { KeyRound, LogOut, Menu } from "lucide-react"
 
+import logo from "~/assets/images/logo.png"
+
 import { maxWidth } from "~/lib/utils"
 import { getUserOrRedirect } from "~/lib/authGuard"
 
@@ -25,7 +27,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
     <div>
       <nav className={maxWidth("flex items-center justify-between gap-4 py-4")}>
         <img
-          src="logo.png"
+          src={logo}
           alt="logo iboti"
           className="pointer-events-none max-h-10"
         />

@@ -662,7 +662,7 @@ function RecentSales() {
           <Link to="venda">Nova venda</Link>
         </Button>
       </header>
-      <fieldset className="mb-4">
+      <fieldset className="mb-4 space-x-2">
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <Button size="sm" variant="ghost">
@@ -698,12 +698,13 @@ function RecentSales() {
             )}
           </DropdownMenu.Content>
         </DropdownMenu.Root>
+
         <Button
           size="sm"
           variant="ghost"
           onClick={() => setMode(mode === "total" ? "user" : "total")}
           data-selected={mode === "user"}
-          className="data-[selected=true]:bg-accent-400"
+          className="data-[selected=true]:bg-accent-400 data-[selected=true]:text-accent-950 data-[selected=true]:hover:bg-accent-400/80"
         >
           Minhas Vendas
         </Button>

@@ -3,6 +3,8 @@ import type { MetaFunction } from "react-router"
 import { Form, redirect, useNavigation } from "react-router"
 import { z } from "zod"
 
+import logo from "~/assets/images/logo.png"
+
 import { commitSession, getSession } from "~/session"
 
 import AuthService from "~/services/AuthService"
@@ -59,7 +61,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
     <div className="grid h-screen place-items-center bg-zinc-300">
       <div className="max-w-[calc(100vw-1rem)] rounded bg-zinc-200 p-6 shadow-sm">
         <img
-          src="logo.png"
+          src={logo}
           alt="logo iboti"
           className="-translate-x-1/2 pointer-events-none absolute top-8 left-1/2 h-auto w-64"
         />
