@@ -3,6 +3,7 @@ import type { MetaFunction } from "react-router"
 import { Form, Link } from "react-router"
 import { ArrowLeft } from "lucide-react"
 import { useEffect } from "react"
+import ConfettiExplosion from "react-confetti-explosion"
 
 import SalesService, { type DomainSale } from "~/services/SalesService"
 
@@ -17,6 +18,8 @@ import { toast } from "~/hooks/use-toast"
 import { Button } from "~/components/ui"
 
 import SaleFormFields, { saleFormSchema } from "~/components/SaleFormFields"
+
+const HAS_CONFETTI = true
 
 export const meta: MetaFunction = () => [
   {
@@ -94,6 +97,17 @@ export default function Venda({ actionData }: Route.ComponentProps) {
 
   return (
     <ErrorProvider initialErrors={errors}>
+      {HAS_CONFETTI && response?.ok && (
+        <ConfettiExplosion
+          className="absolute left-1/2"
+          width={document.body.clientWidth}
+          force={1}
+          duration={4000}
+          particleCount={100}
+          particleSize={16}
+        />
+      )}
+
       <header className="mb-4 flex items-center gap-2">
         <Button asChild variant="ghost" size="icon">
           <Link to="/app">
