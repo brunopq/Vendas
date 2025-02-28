@@ -1,5 +1,11 @@
 import type { Route } from "./+types/app._index"
-import { Link, useFetcher, useLoaderData, useSearchParams } from "react-router"
+import {
+  Link,
+  useFetcher,
+  useLoaderData,
+  useRouteLoaderData,
+  useSearchParams,
+} from "react-router"
 import { memo, useEffect, useState } from "react"
 import { ChevronDown, EllipsisVertical } from "lucide-react"
 import {
@@ -33,6 +39,7 @@ import { BarChart } from "~/components/charts/bar"
 import { HorizontalBarChart } from "~/components/charts/horizontal-bar"
 import { DateSelection } from "~/components/DateSelection"
 import { toast } from "~/hooks/use-toast"
+import UserService from "~/services/UserService"
 
 const maybeNumber = z.coerce.number().nullable()
 
@@ -619,9 +626,8 @@ const defaultColumns: ColumnDef<
 ]
 
 function RecentSales() {
-  const { data } = useLoaderData<typeof loader>()
-
-  const [tableData, setTableData] = useState(data.total)
+  const { data, user } = useLoaderData<typeof loader>()
+  const [mode, setMode] = useState("total")
   const [visibleColumns, setVisibleColumns] = useState<VisibilityState>({
     indication: false,
     captationType: false,
@@ -635,7 +641,7 @@ function RecentSales() {
   ])
 
   const table = useReactTable({
-    data: tableData,
+    data: mode === "total" ? data.total : data.user,
     columns: defaultColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -692,9 +698,18 @@ function RecentSales() {
             )}
           </DropdownMenu.Content>
         </DropdownMenu.Root>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setMode(mode === "total" ? "user" : "total")}
+          data-selected={mode === "user"}
+          className="data-[selected=true]:bg-accent-400"
+        >
+          Minhas Vendas
+        </Button>
       </fieldset>
 
-      <Table.Root>
+      <Table.Root className="">
         <Table.Header>
           <Table.Row>
             {table.getHeaderGroups().map((group) =>
@@ -702,9 +717,10 @@ function RecentSales() {
                 <Table.Head
                   onPointerDown={c.column.getToggleSortingHandler()}
                   key={c.id}
-                  className={
-                    c.column.getCanSort() ? "group cursor-pointer" : undefined
-                  }
+                  className={cn(
+                    "max-w-xl",
+                    c.column.getCanSort() ? "group cursor-pointer" : undefined,
+                  )}
                 >
                   <span className="flex select-none items-center gap-2">
                     {c.isPlaceholder
@@ -728,7 +744,7 @@ function RecentSales() {
           {table.getRowModel().rows.map((row) => (
             <Table.Row key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <Table.Cell key={cell.id}>
+                <Table.Cell className="max-w-xl" key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </Table.Cell>
               ))}
