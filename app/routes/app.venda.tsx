@@ -8,7 +8,7 @@ import ConfettiExplosion from "react-confetti-explosion"
 import SalesService, { type DomainSale } from "~/services/SalesService"
 
 import { type Result, ok, error } from "~/lib/result"
-import { currencyToNumeric } from "~/lib/formatters"
+import { currencyToNumber, currencyToNumeric } from "~/lib/formatters"
 import { getUserOrRedirect } from "~/lib/authGuard"
 
 import { ErrorProvider, type ErrorT } from "~/context/ErrorsContext"
@@ -27,7 +27,10 @@ export const meta: MetaFunction = () => [
   },
 ]
 
-type ActionResponse = Result<DomainSale, ErrorT[]>
+type ActionResponse = Result<
+  { sale: DomainSale; shouldConfetti: boolean },
+  ErrorT[]
+>
 export async function action({
   request,
 }: Route.ActionArgs): Promise<ActionResponse> {
@@ -68,7 +71,19 @@ export async function action({
       return error(errors)
     }
 
-    return ok(await SalesService.create(parsed.data))
+    const created = await SalesService.create(parsed.data)
+
+    let p = 0.1
+    if (created.estimatedValue) {
+      p = currencyToNumber(created.estimatedValue) / 100_000
+    }
+
+    const shouldConfetti = HAS_CONFETTI && Math.random() < p
+
+    return ok({
+      sale: created,
+      shouldConfetti,
+    })
   } catch (e) {
     return error([{ type: "backend", message: "unknown backend error" }])
   }
@@ -97,7 +112,7 @@ export default function Venda({ actionData }: Route.ComponentProps) {
 
   return (
     <ErrorProvider initialErrors={errors}>
-      {HAS_CONFETTI && response?.ok && (
+      {response?.ok && response.value.shouldConfetti && (
         <ConfettiExplosion
           className="absolute left-1/2"
           width={document.body.clientWidth}
