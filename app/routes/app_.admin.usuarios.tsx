@@ -189,7 +189,7 @@ export default function Users({ loaderData }: Route.ComponentProps) {
       </header>
       <fieldset className="mb-4 flex items-end justify-start gap-6">
         <span className="min-w-max text-sm text-zinc-800">
-          Período das vendas:
+          <p className="pb-1">Período das vendas:</p>
           <DateSelection
             month={month}
             year={year}
