@@ -188,7 +188,7 @@ export default function Users({ loaderData }: Route.ComponentProps) {
         <h2 className="font-medium text-2xl">Usuários</h2>
       </header>
       <fieldset className="mb-4 flex items-end justify-start gap-6">
-        <span className="text-sm text-zinc-800">
+        <span className="min-w-max text-sm text-zinc-800">
           Período das vendas:
           <DateSelection
             month={month}
