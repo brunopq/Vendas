@@ -22,7 +22,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   let row = 1
 
-  XLSX.utils.sheet_add_aoa(ws, [["Relatório de comissões"]], {
+  XLSX.utils.sheet_add_aoa(ws, [["Relatório de premiações"]], {
     origin: `A${row}`,
   })
   ws["!merges"] = [XLSX.utils.decode_range("A1:E1")]
@@ -51,10 +51,10 @@ export async function loader({ request }: Route.LoaderArgs) {
       [
         [
           "Campanha",
-          "Comissão geral",
+          "Premiação geral",
           "Vendas do usuário",
-          "Comissão do usuário",
-          "Comissão total",
+          "Premiação do usuário",
+          "Premiação total",
         ],
       ],
       {

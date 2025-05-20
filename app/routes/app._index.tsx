@@ -261,7 +261,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div className="col-span-4 grid grid-cols-subgrid gap-2 rounded-md border border-teal-300 bg-teal-100 p-6 shadow-sm">
-            <h3 className="col-span-2 text-lg">Comissões</h3>
+            <h3 className="col-span-2 text-lg">Premiações</h3>
 
             <div className="col-span-2 row-start-2">
               {data.commissions.length === 0 ? (
@@ -299,7 +299,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
                         Meta: {item.sellCount} / {item.campaign.goal}
                       </p>
                       <p className="text-sm">
-                        Comissão: {brl(item.comission)} /{" "}
+                        Premiação: {brl(item.comission)} /{" "}
                         {brl(item.campaign.prize)}
                       </p>
 
@@ -309,7 +309,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
 
                       {item.userSellCount > 0 && (
                         <p className="text-sm">
-                          Sua comissão: {brl(item.userComission)}
+                          Sua premiação: {brl(item.userComission)}
                         </p>
                       )}
                     </>
@@ -326,7 +326,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
               </strong>
             </div>
             <div className="row-span-2 grid grid-rows-subgrid text-center">
-              <h3>Sua comissão</h3>
+              <h3>Sua premiação</h3>
 
               <strong className="self-center text-xl">
                 {brl(

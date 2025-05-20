@@ -105,7 +105,7 @@ export function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
       </FormGroup>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormGroup name="prize" label="Comissão">
+        <FormGroup name="prize" label="Premiação">
           {(removeError) => (
             <BrlInput
               onInput={(e) => {
@@ -118,7 +118,7 @@ export function CampaiginFormFields({ campaign }: CampaiginFormFieldsProps) {
           )}
         </FormGroup>
 
-        <FormGroup name="individualPrize" label="Comissão individual">
+        <FormGroup name="individualPrize" label="Premiação individual">
           {(removeError) => (
             <BrlInput
               onInput={(e) => {
@@ -173,7 +173,7 @@ function CampaignGoalPreview({
       <span>{Math.round(goal * 0.75)}</span>
       <span>{Math.round(goal * 1)}</span>
 
-      <span className="text-zinc-600">Comissão geral</span>
+      <span className="text-zinc-600">Premiação geral</span>
       <span>{brl(prize * 0.5)}</span>
       <span>{brl(prize * 0.75)}</span>
       <span>{brl(prize * 1)}</span>
@@ -183,7 +183,7 @@ function CampaignGoalPreview({
       <span>{Math.floor(goal * 0.75 * 0.1)}</span>
       <span>{Math.floor(goal * 1 * 0.1)}</span>
 
-      <span className="text-zinc-600">Comissão individual</span>
+      <span className="text-zinc-600">Premiação individual</span>
       <span>{brl(individualPrize * Math.floor(goal * 0.5 * 0.1))}</span>
       <span>{brl(individualPrize * Math.floor(goal * 0.75 * 0.1))}</span>
       <span>{brl(individualPrize * Math.floor(goal * 1 * 0.1))}</span>

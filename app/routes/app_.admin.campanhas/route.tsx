@@ -284,8 +284,8 @@ export default function Campaigns({ loaderData }: Route.ComponentProps) {
             <Table.Head>Nome</Table.Head>
             <Table.Head>Mês</Table.Head>
             <Table.Head>Meta de vendas</Table.Head>
-            <Table.Head>Comissão</Table.Head>
-            <Table.Head>Comissão individual</Table.Head>
+            <Table.Head>Premiação</Table.Head>
+            <Table.Head>Premiação individual</Table.Head>
             <Table.Head className="w-0">{/*dropdown*/}</Table.Head>
           </Table.Row>
         </Table.Header>

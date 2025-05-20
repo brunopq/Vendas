@@ -238,8 +238,8 @@ export default function Users({ loaderData }: Route.ComponentProps) {
             <Table.Head className="w-0">Tipo</Table.Head>
             <Table.Head>Nome completo</Table.Head>
             <Table.Head>Vendas</Table.Head>
-            <Table.Head>Comissão individual</Table.Head>
-            <Table.Head>Comissão total</Table.Head>
+            <Table.Head>Premiação individual</Table.Head>
+            <Table.Head>Premiação total</Table.Head>
             <Table.Head />
           </Table.Row>
         </Table.Header>
